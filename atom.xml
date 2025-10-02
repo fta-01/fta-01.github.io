@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2025-10-02T08:38:37.015Z</updated>
+  <updated>2025-10-02T09:18:42.328Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -17,24 +17,31 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>Hello World</title>
-    <link href="http://example.com/2025/10/01/hello-world/1/"/>
-    <id>http://example.com/2025/10/01/hello-world/1/</id>
-    <published>2025-10-01T07:45:00.000Z</published>
-    <updated>2025-10-02T08:38:37.015Z</updated>
+    <title>我的技术分享</title>
+    <link href="http://example.com/2025/10/02/test/"/>
+    <id>http://example.com/2025/10/02/test/</id>
+    <published>2025-10-01T16:00:00.000Z</published>
+    <updated>2025-10-02T09:18:42.328Z</updated>
     
     
       
       
         
         
-    <summary type="html">&lt;p&gt;Hello&lt;/p&gt;
-</summary>
+    <summary type="html">&lt;h1 id=&quot;hexo图片管理教程&quot;&gt;&lt;a class=&quot;markdownIt-Anchor&quot; href=&quot;#hexo图片管理教程&quot;&gt;&lt;/a&gt; Hexo图片管理教程&lt;/h1&gt;
+&lt;p&gt;本文将介绍如何在Hexo博客中高效管理图片。&lt;/p&gt;
+&lt;h2 id=&quot;环境配置&quot;&gt;&lt;a</summary>
         
       
     
     
     
+    
+    <category term="Hexo" scheme="http://example.com/tags/Hexo/"/>
+    
+    <category term="教程" scheme="http://example.com/tags/%E6%95%99%E7%A8%8B/"/>
+    
+    <category term="图片" scheme="http://example.com/tags/%E5%9B%BE%E7%89%87/"/>
     
   </entry>
   
