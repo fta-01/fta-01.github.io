@@ -466,14 +466,32 @@
         const targetId = document.getElementById('opponentIdInput').value.trim();
         if (!targetId) return alert('请输入对手 ID');
         
-        conn = peer.connect(targetId);
+        // 增加日志
+        log(`正在尝试连接到对手: ${targetId}...`);
+        document.getElementById('connect-btn').disabled = true;
+        document.getElementById('connect-btn').textContent = '连接中...';
+
+        conn = peer.connect(targetId, {
+            reliable: true
+        });
         myRole = 2; // 发起方为蓝方
         setupConnection();
+
+        // 设置连接超时
+        setTimeout(() => {
+            if (conn && !conn.open) {
+                log('连接超时，请确认对手 ID 是否正确且在线。');
+                document.getElementById('connect-btn').disabled = false;
+                document.getElementById('connect-btn').textContent = '连接对手';
+            }
+        }, 10000);
     }
 
     function setupConnection() {
         conn.on('open', () => {
             log('已建立 P2P 连接！');
+            document.getElementById('connect-btn').disabled = false;
+            document.getElementById('connect-btn').textContent = '连接对手';
             // 如果我是发起方，告诉对方我是谁
             if (myRole === 2) {
                 conn.send({ type: 'gameStart' });
@@ -486,13 +504,16 @@
         });
 
         conn.on('close', () => {
+            log('连接已关闭。');
             alert('对手已断开连接');
             location.reload();
         });
 
         conn.on('error', (err) => {
             console.error('连接错误:', err);
-            alert('连接出错: ' + err.message);
+            log(`连接出错: ${err.message}`);
+            document.getElementById('connect-btn').disabled = false;
+            document.getElementById('connect-btn').textContent = '连接对手';
         });
     }
 
