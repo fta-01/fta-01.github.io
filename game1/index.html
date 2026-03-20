@@ -327,6 +327,15 @@
             <br>
             <button id="connect-btn" onclick="connectToPeer()">连接对手</button>
         </div>
+        <div style="margin-top: 15px; font-size: 0.8rem;">
+            <a href="javascript:void(0)" onclick="toggleHelp()" style="color: #3498db;">连不上？点击查看排查指南</a>
+        </div>
+        <div id="help-panel" style="display:none; text-align: left; font-size: 0.75rem; color: #666; background: #f9f9f9; padding: 10px; border-radius: 5px; margin-top: 10px;">
+            <p><strong>1. 相同网络优先</strong>：尽量让手机和电脑连入同一个 WiFi。</p>
+            <p><strong>2. 电脑防火墙</strong>：Windows 可能拦截了浏览器的 UDP 流量。请检查防火墙设置。</p>
+            <p><strong>3. 对称型 NAT</strong>：某些 4G/5G 网络或复杂局域网可能无法直接穿透。尝试让另一方作为“连接发起者”。</p>
+            <p><strong>4. HTTPS 协议</strong>：确保双方地址栏都是 <code>https://</code> 开头。</p>
+        </div>
         <div id="waiting-panel" style="display:none;">
             <p>已连接! 游戏即将开始...</p>
             <div style="margin-top: 20px;">
@@ -396,6 +405,11 @@
 </div>
 
 <script>
+    function toggleHelp() {
+        const panel = document.getElementById('help-panel');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+
     // --- P2P 通信配置 ---
     // 使用多个 STUN 服务器以提高穿透率
     const peerConfig = {
@@ -404,6 +418,8 @@
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
                 { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' },
                 { urls: 'stun:stun.cloudflare.com:3478' },
                 { urls: 'stun:stun.anyfirewall.com:3478' },
                 { urls: 'stun:stun.ekiga.net' },
@@ -412,7 +428,18 @@
                 { urls: 'stun:stun.voiparound.com' },
                 { urls: 'stun:stun.voipbuster.com' },
                 { urls: 'stun:stun.voipstunt.com' },
-                { urls: 'stun:stun.voxgratia.org' }
+                { urls: 'stun:stun.voxgratia.org' },
+                { urls: 'stun:stun.stuntmanit.com:3478' },
+                { urls: 'stun:stun.12connect.com:3478' },
+                { urls: 'stun:stun.12voip.com:3478' },
+                { urls: 'stun:stun.1und1.de:3478' },
+                { urls: 'stun:stun.3cx.com:3478' },
+                { urls: 'stun:stun.acrobits.cz:3478' },
+                { urls: 'stun:stun.actionvoip.com:3478' },
+                { urls: 'stun:stun.advancestack.com:3478' },
+                { urls: 'stun:stun.aeta-audio.com:3478' },
+                { urls: 'stun:stun.altar.com.pl:3478' },
+                { urls: 'stun:stun.annatel.net:3478' }
             ],
             'sdpSemantics': 'unified-plan'
         },
