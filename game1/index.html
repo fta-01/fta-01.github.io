@@ -411,39 +411,35 @@
     }
 
     // --- P2P 通信配置 ---
-    // 使用多个 STUN 服务器以提高穿透率
+    // 使用 Open Relay Project 提供的免费 TURN 服务器以解决 NAT 穿透失败问题
     const peerConfig = {
         config: {
             'iceServers': [
+                { urls: 'stun:openrelay.metered.ca:80' },
+                { 
+                    urls: 'turn:openrelay.metered.ca:80',
+                    username: 'openrelay',
+                    credential: 'openrelay'
+                },
+                { 
+                    urls: 'turn:openrelay.metered.ca:443',
+                    username: 'openrelay',
+                    credential: 'openrelay'
+                },
+                { 
+                    urls: 'turns:openrelay.metered.ca:443?transport=tcp',
+                    username: 'openrelay',
+                    credential: 'openrelay'
+                },
+                // 备用 STUN
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
-                { urls: 'stun:stun2.l.google.com:19302' },
-                { urls: 'stun:stun3.l.google.com:19302' },
-                { urls: 'stun:stun4.l.google.com:19302' },
-                { urls: 'stun:stun.cloudflare.com:3478' },
-                { urls: 'stun:stun.anyfirewall.com:3478' },
-                { urls: 'stun:stun.ekiga.net' },
-                { urls: 'stun:stun.ideasip.com' },
-                { urls: 'stun:stun.schlund.de' },
-                { urls: 'stun:stun.voiparound.com' },
-                { urls: 'stun:stun.voipbuster.com' },
-                { urls: 'stun:stun.voipstunt.com' },
-                { urls: 'stun:stun.voxgratia.org' },
-                { urls: 'stun:stun.stuntmanit.com:3478' },
-                { urls: 'stun:stun.12connect.com:3478' },
-                { urls: 'stun:stun.12voip.com:3478' },
-                { urls: 'stun:stun.1und1.de:3478' },
-                { urls: 'stun:stun.3cx.com:3478' },
-                { urls: 'stun:stun.acrobits.cz:3478' },
-                { urls: 'stun:stun.actionvoip.com:3478' },
-                { urls: 'stun:stun.advancestack.com:3478' },
-                { urls: 'stun:stun.aeta-audio.com:3478' },
-                { urls: 'stun:stun.altar.com.pl:3478' },
-                { urls: 'stun:stun.annatel.net:3478' }
+                { urls: 'stun:stun.cloudflare.com:3478' }
             ],
+            'iceTransportPolicy': 'all',
             'sdpSemantics': 'unified-plan'
         },
-        debug: 1 // 1: 仅错误, 2: 错误和警告, 3: 全部
+        debug: 1
     };
 
     let peer = new Peer(peerConfig);
@@ -584,11 +580,17 @@
         // 设置连接超时
         setTimeout(() => {
             if (conn && !conn.open) {
-                log('连接超时，请确认对手 ID 是否正确且在线。');
-                document.getElementById('connect-btn').disabled = false;
-                document.getElementById('connect-btn').textContent = '连接对手';
+                log('直接连接超时，正在尝试通过中继服务器(TURN)连接...');
+                // 此时 PeerJS 内部会自动尝试 TURN 服务器，我们只需延长提示时间
+                setTimeout(() => {
+                    if (conn && !conn.open) {
+                        log('中继连接也失败，可能是由于极端的防火墙限制。');
+                        document.getElementById('connect-btn').disabled = false;
+                        document.getElementById('connect-btn').textContent = '连接对手';
+                    }
+                }, 15000);
             }
-        }, 10000);
+        }, 8000);
     }
 
     function setupConnection() {
