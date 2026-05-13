@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2026-05-13T08:07:56.110Z</updated>
+  <updated>2026-05-13T08:13:38.690Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -18,10 +18,10 @@
   
   <entry>
     <title>现代密码学实验一：破解重复密钥 XOR &amp; SHA1 哈希密码</title>
-    <link href="http://example.com/2026/05/13/%E7%8E%B0%E4%BB%A3%E5%AF%86%E7%A0%81%E5%AD%A6%E5%AE%9E%E9%AA%8C%E4%B8%80_%E7%A0%B4%E8%A7%A3%E5%AF%86%E7%A0%81/"/>
-    <id>http://example.com/2026/05/13/%E7%8E%B0%E4%BB%A3%E5%AF%86%E7%A0%81%E5%AD%A6%E5%AE%9E%E9%AA%8C%E4%B8%80_%E7%A0%B4%E8%A7%A3%E5%AF%86%E7%A0%81/</id>
+    <link href="http://example.com/2026/05/13/%E7%8E%B0%E4%BB%A3%E5%AF%86%E7%A0%81%E5%AD%A6%E5%AE%9E%E9%AA%8C%E4%B8%80/"/>
+    <id>http://example.com/2026/05/13/%E7%8E%B0%E4%BB%A3%E5%AF%86%E7%A0%81%E5%AD%A6%E5%AE%9E%E9%AA%8C%E4%B8%80/</id>
     <published>2026-05-13T07:51:25.157Z</published>
-    <updated>2026-05-13T08:07:56.110Z</updated>
+    <updated>2026-05-13T08:13:38.690Z</updated>
     
     
       
