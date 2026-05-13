@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2025-10-02T09:36:21.087Z</updated>
+  <updated>2026-05-13T08:07:56.110Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,27 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>现代密码学实验一：破解重复密钥 XOR &amp; SHA1 哈希密码</title>
+    <link href="http://example.com/2026/05/13/%E7%8E%B0%E4%BB%A3%E5%AF%86%E7%A0%81%E5%AD%A6%E5%AE%9E%E9%AA%8C%E4%B8%80_%E7%A0%B4%E8%A7%A3%E5%AF%86%E7%A0%81/"/>
+    <id>http://example.com/2026/05/13/%E7%8E%B0%E4%BB%A3%E5%AF%86%E7%A0%81%E5%AD%A6%E5%AE%9E%E9%AA%8C%E4%B8%80_%E7%A0%B4%E8%A7%A3%E5%AF%86%E7%A0%81/</id>
+    <published>2026-05-13T07:51:25.157Z</published>
+    <updated>2026-05-13T08:07:56.110Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h1 id=&quot;现代密码学实验一破解重复密钥-xor-sha1-哈希密码&quot;&gt;&lt;a class=&quot;markdownIt-Anchor&quot; href=&quot;#现代密码学实验一破解重复密钥-xor-sha1-哈希密码&quot;&gt;&lt;/a&gt; 现代密码学实验一：破解重复密钥 XOR &amp;amp; SHA1</summary>
+        
+      
+    
+    
+    
+    
+  </entry>
   
   <entry>
     <title>TEST</title>
