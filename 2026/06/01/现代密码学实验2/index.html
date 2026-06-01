@@ -1,0 +1,932 @@
+
+  <!DOCTYPE html>
+  <html lang="zh-CN"  
+    
+      data-theme-mode="auto"
+    
+  >
+  <head>
+  
+  <meta charset="utf-8">
+  
+
+  
+
+  
+
+  <script>window.REIMU_CONFIG = {};window.REIMU_CONFIG.icon_font = '4552607_4k4bc36ef96';window.REIMU_CONFIG.clipboard_tips = {"success":{"zh-CN":"复制成功 (*^▽^*)"},"fail":{"zh-CN":"复制失败 (ﾟ⊿ﾟ)ﾂ"},"copyright":{"enable":false,"count":50,"license_type":"by-nc-sa"}};window.REIMU_CONFIG.clipboard_tips.copyright.content = '本博客所有文章除特别声明外，均采用 BY-NC-SA 许可协议。转载请注明出处！';window.REIMU_CONFIG.code_block = {"expand":true};window.REIMU_CONFIG.base = 'http://example.com';</script>
+  
+  <title>
+    现代密码学实验二 |
+    
+    欢迎
+  </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin><link rel="preload" as="style" href="https://fonts.googleapis.com/css?family=Mulish:400,400italic,700,700italic%7CNoto%20Serif%20SC:400,400italic,700,700italic&display=swap"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Mulish:400,400italic,700,700italic%7CNoto%20Serif%20SC:400,400italic,700,700italic&display=swap" media="print" onload="this.media&#x3D;&#39;all&#39;">
+  
+  
+    <link rel="preload" href="//at.alicdn.com/t/c/font_4552607_4k4bc36ef96.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  
+  
+    
+<link rel="stylesheet" href="/css/loader.css">
+
+  
+  
+    <meta name="description" content="现代密码学实验2：AES密钥推导、ECB逐字节解密与CBC位翻转攻击 课程：现代密码学实验 实验编号：EX2 实验日期：2026 年 6 月 包含实验：BAC协议AES密钥推导 &#x2F; 含前缀ECB逐字节解密（Harder）&#x2F; CBC位翻转攻击   摘要 本实验报告涵盖三个密码学实验，聚焦AES分组密码在不同工作模式及应用场景下的安全性分析。实验一基于欧洲电子护照（ePassport）的基本访问控制">
+<meta property="og:type" content="article">
+<meta property="og:title" content="现代密码学实验二">
+<meta property="og:url" content="http://example.com/2026/06/01/%E7%8E%B0%E4%BB%A3%E5%AF%86%E7%A0%81%E5%AD%A6%E5%AE%9E%E9%AA%8C2/index.html">
+<meta property="og:site_name" content="欢迎">
+<meta property="og:description" content="现代密码学实验2：AES密钥推导、ECB逐字节解密与CBC位翻转攻击 课程：现代密码学实验 实验编号：EX2 实验日期：2026 年 6 月 包含实验：BAC协议AES密钥推导 &#x2F; 含前缀ECB逐字节解密（Harder）&#x2F; CBC位翻转攻击   摘要 本实验报告涵盖三个密码学实验，聚焦AES分组密码在不同工作模式及应用场景下的安全性分析。实验一基于欧洲电子护照（ePassport）的基本访问控制">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/posts/shiyan2/1.png">
+<meta property="og:image" content="http://example.com/images/posts/shiyan2/2.png">
+<meta property="og:image" content="http://example.com/images/posts/shiyan2/3.png">
+<meta property="article:published_time" content="2026-06-01T13:40:36.814Z">
+<meta property="article:modified_time" content="2026-06-01T13:40:05.530Z">
+<meta property="article:author" content="fta-01">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/posts/shiyan2/1.png">
+  
+  
+    <link rel="alternate" href="/atom.xml" title="欢迎" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/images/favicon.ico">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  <link rel="preload" as="style" onload="this.onload&#x3D;null;this.rel&#x3D;&#39;stylesheet&#39;" href="https://npm.webcache.cn/photoswipe@5.4.4/dist/photoswipe.css" integrity="sha384-IfxC36XL&#x2F;toUyJ939C73PcgMuRzAZuIzZxE38drsmO5p6jD7ei+Zx&#x2F;1oA&#x2F;0l8ysE" crossorigin="anonymous">
+  
+  
+  
+  
+    
+<script src="https://npm.webcache.cn/pace-js@1.2.4/pace.min.js" integrity="sha384-k6YtvFUEIuEFBdrLKJ3YAUbBki333tj1CSUisai5Cswsg9wcLNaPzsTHDswp4Az8" crossorigin="anonymous"></script>
+
+  
+  
+    
+<link rel="stylesheet" href="https://npm.webcache.cn/@reimujs/aos@0.1.2/dist/aos.css" integrity="sha384-GMRP93c6Hkz9JVKGAuRR3nTS7M07RwPgTFenXiosjq2VbVgvdDNcz1g6Mkj8AONa" crossorigin="anonymous">
+
+  
+  
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+  <body>
+    
+    
+  <div id='loader'>
+    <div class="loading-left-bg loading-bg"></div>
+    <div class="loading-right-bg loading-bg"></div>
+    <div class="spinner-box">
+      <div class="loading-taichi rotate">
+        
+          <svg width="150" height="150" viewBox="0 0 1024 1024" class="icon" version="1.1" xmlns="https://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
+            <path d="M303.5 432A80 80 0 0 1 291.5 592A80 80 0 0 1 303.5 432z" fill="var(--red-1, #ff5252)" />
+            <path d="M512 65A447 447 0 0 1 512 959L512 929A417 417 0 0 0 512 95A417 417 0 0 0 512 929L512 959A447 447 0 0 1 512 65z 
+           M512 95A417 417 0 0 1 929 512A208.5 208.5 0 0 1 720.5 720.5L720.5 592A80 80 0 0 0 720.5 432A80 80 0 0 0 720.5 592L720.5 720.5A208.5 208.5 0 0 1 512 512A208.5 208.5 0 0 0 303.5 303.5A208.5 208.5 0 0 0 95 512A417 417 0 0 1 512 95z" fill="var(--red-1, #ff5252)" />
+          </svg>
+        
+      </div>
+      
+      
+        
+      
+      <div class="loading-word">少女祈祷中...</div>
+    </div>
+  </div>
+  </div>
+  <script>
+    var time = null;
+    var loaderEl = document.getElementById('loader');
+    var startLoading = () => {
+      time = Date.now();
+      loaderEl.classList.remove("loading");
+    }
+    var hideLoader = () => {
+      document.body.style.overflow = 'auto';
+      loader.classList.add('loading');
+    };
+
+    var endLoading = () => {
+      if (!time) {
+        hideLoader();
+      } else {
+        if (Date.now() - time > 500) {
+          time = null;
+          hideLoader();
+        } else {
+          setTimeout(endLoading, 500 - (Date.now() - time));
+          time = null;
+        }
+      }
+    }
+    window.addEventListener('DOMContentLoaded', endLoading);
+    loaderEl.addEventListener('click', endLoading);
+  </script>
+
+<div id="copy-tooltip"></div>
+<div id="heatmap-tooltip"></div>
+
+
+    <div id="container">
+      <div id="wrap">
+        <div id="header-nav">
+  <nav id="main-nav" aria-label="Primary navigation">
+    
+      
+        <span class="main-nav-link-wrap">
+          <div class="main-nav-icon icon rotate">
+             
+              &#xe62b;
+             
+          </div>
+          <a class="main-nav-link" href="/">首页</a>
+        </span>
+      
+        <span class="main-nav-link-wrap">
+          <div class="main-nav-icon icon rotate">
+             
+              &#xe62b;
+             
+          </div>
+          <a class="main-nav-link" href="/archives">归档</a>
+        </span>
+      
+        <span class="main-nav-link-wrap">
+          <div class="main-nav-icon icon rotate">
+             
+              &#xe62b;
+             
+          </div>
+          <a class="main-nav-link" href="/about">关于</a>
+        </span>
+      
+        <span class="main-nav-link-wrap">
+          <div class="main-nav-icon icon rotate">
+             
+              &#xe62b;
+             
+          </div>
+          <a class="main-nav-link" href="/friend">盆友</a>
+        </span>
+      
+    
+    <a id="main-nav-toggle" class="nav-icon" aria-label="Toggle navigation" role="button"></a>
+  </nav>
+  <nav id="sub-nav" aria-label="Secondary navigation">
+    
+      <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS 订阅" aria-label="RSS 订阅" target="_blank"></a>
+    
+    
+  </nav>
+  
+</div>
+<header id="header" aria-label="Site header">
+  
+    
+      
+        <picture>
+          
+            
+              <source media="(max-width: 479px)" srcset="/images/banner-600w.webp">
+            
+              <source media="(max-width: 799px)" srcset="/images/banner-800w.webp">
+            
+              <source media="(min-width: 800px)" srcset="/images/banner.webp">
+            
+            <img  fetchpriority="high" src="/images/banner.webp" alt="现代密码学实验二">
+          
+        </picture>
+        
+          <img alt="现代密码学实验二" style="visibility: hidden;">
+        
+      
+    
+  
+  <div id="header-outer">
+    <div id="header-title">
+      
+        
+        
+          <span id="logo">
+            <h1 data-aos="slide-up">现代密码学实验二</h1>
+          </span>
+        
+      
+      
+        
+        <h2 id="subtitle-wrap" data-aos="slide-down">
+          
+        </h2>
+      
+    </div>
+  </div>
+</header>
+
+        <div id="content" aria-label="Page content"  class="sidebar-right" >
+          <aside id="sidebar" aria-label="Sidebar">
+  
+  <div class="sidebar-wrapper-container sticky">
+  
+    
+    
+  
+ 
+  <div class="sidebar-wrapper">
+    <div class="sidebar-wrap" data-aos="fade-up">
+      
+        
+          <div class="sidebar-toc-sidebar"><h3 class="toc-title">文章目录</h3>
+<div class="sidebar-toc-wrapper toc-div-class" >
+  
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%8E%B0%E4%BB%A3%E5%AF%86%E7%A0%81%E5%AD%A6%E5%AE%9E%E9%AA%8C2aes%E5%AF%86%E9%92%A5%E6%8E%A8%E5%AF%BC-ecb%E9%80%90%E5%AD%97%E8%8A%82%E8%A7%A3%E5%AF%86%E4%B8%8Ecbc%E4%BD%8D%E7%BF%BB%E8%BD%AC%E6%94%BB%E5%87%BB"><span class="toc-number">1.</span> <span class="toc-text"> 现代密码学实验2：AES密钥推导、ECB逐字节解密与CBC位翻转攻击</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%91%98%E8%A6%81"><span class="toc-number">1.1.</span> <span class="toc-text"> 摘要</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E4%B8%80aes%E5%AF%86%E9%92%A5%E7%BC%96%E7%A0%81%E4%BA%8E%E6%AC%A7%E6%B4%B2%E7%94%B5%E5%AD%90%E6%8A%A4%E7%85%A7%E6%9C%BA%E5%99%A8%E5%8F%AF%E8%AF%BB%E5%8C%BAbac%E5%8D%8F%E8%AE%AE"><span class="toc-number">1.2.</span> <span class="toc-text"> 实验一：AES密钥编码于欧洲电子护照机器可读区（BAC协议）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE%E6%8F%8F%E8%BF%B0"><span class="toc-number">1.2.1.</span> <span class="toc-text"> 题目描述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8E%9F%E7%90%86"><span class="toc-number">1.2.2.</span> <span class="toc-text"> 背景与原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%AD%A5%E9%AA%A4"><span class="toc-number">1.2.3.</span> <span class="toc-text"> 实现步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81"><span class="toc-number">1.2.4.</span> <span class="toc-text"> 完整代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E6%88%AA%E5%9B%BE"><span class="toc-number">1.2.5.</span> <span class="toc-text"> 运行截图</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E4%BA%8C%E9%80%90%E5%AD%97%E8%8A%82ecb%E8%A7%A3%E5%AF%86%E5%9B%B0%E9%9A%BE%E7%89%88-cryptopals-set-2-challenge-14"><span class="toc-number">1.3.</span> <span class="toc-text"> 实验二：逐字节ECB解密（困难版）—— Cryptopals Set 2 Challenge 14</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE%E6%8F%8F%E8%BF%B0-2"><span class="toc-number">1.3.1.</span> <span class="toc-text"> 题目描述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8E%9F%E7%90%86-2"><span class="toc-number">1.3.2.</span> <span class="toc-text"> 背景与原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%AD%A5%E9%AA%A4-2"><span class="toc-number">1.3.3.</span> <span class="toc-text"> 实现步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81-2"><span class="toc-number">1.3.4.</span> <span class="toc-text"> 完整代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E6%88%AA%E5%9B%BE-2"><span class="toc-number">1.3.5.</span> <span class="toc-text"> 运行截图</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E4%B8%89cbc%E4%BD%8D%E7%BF%BB%E8%BD%AC%E6%94%BB%E5%87%BB-cryptopals-set-2-challenge-16"><span class="toc-number">1.4.</span> <span class="toc-text"> 实验三：CBC位翻转攻击 —— Cryptopals Set 2 Challenge 16</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE%E6%8F%8F%E8%BF%B0-3"><span class="toc-number">1.4.1.</span> <span class="toc-text"> 题目描述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8E%9F%E7%90%86-3"><span class="toc-number">1.4.2.</span> <span class="toc-text"> 背景与原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%AD%A5%E9%AA%A4-3"><span class="toc-number">1.4.3.</span> <span class="toc-text"> 实现步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81-3"><span class="toc-number">1.4.4.</span> <span class="toc-text"> 完整代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E6%88%AA%E5%9B%BE-3"><span class="toc-number">1.4.5.</span> <span class="toc-text"> 运行截图</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93%E4%B8%8E%E5%BF%83%E5%BE%97"><span class="toc-number">1.5.</span> <span class="toc-text"> 总结与心得</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E4%B8%80%E5%BF%83%E5%BE%97"><span class="toc-number">1.5.1.</span> <span class="toc-text"> 实验一心得</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E4%BA%8C%E5%BF%83%E5%BE%97"><span class="toc-number">1.5.2.</span> <span class="toc-text"> 实验二心得</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E4%B8%89%E5%BF%83%E5%BE%97"><span class="toc-number">1.5.3.</span> <span class="toc-text"> 实验三心得</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B4%E4%BD%93%E6%84%9F%E6%82%9F"><span class="toc-number">1.5.4.</span> <span class="toc-text"> 整体感悟</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">1.6.</span> <span class="toc-text"> 参考文献</span></a></li></ol></li></ol>
+  
+</div>
+</div>
+          <div class="sidebar-common-sidebar hidden"><div class="sidebar-author">
+  <img data-src="/avatar/avatar.webp" data-sizes="auto" alt="fta-01" class="lazyload">
+  <div class="sidebar-author-name">fta-01</div>
+  <div class="sidebar-description"></div>
+</div>
+<div class="sidebar-state">
+  <div class="sidebar-state-article">
+    <div>文章</div>
+    <div class="sidebar-state-number">4</div>
+  </div>
+  <div class="sidebar-state-category">
+    <div>分类</div>
+    <div class="sidebar-state-number">0</div>
+  </div>
+  <div class="sidebar-state-tag">
+    <div>标签</div>
+    <div class="sidebar-state-number">3</div>
+  </div>
+</div>
+<div class="sidebar-social">
+  
+</div>
+<div class="sidebar-menu">
+  
+    
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/" aria-label="首页"></a>
+        <div class="sidebar-menu-icon icon rotate">
+          
+            &#xe62b;
+          
+        </div>
+        <div class="sidebar-menu-link">首页</div>
+      </div>
+    
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/archives" aria-label="归档"></a>
+        <div class="sidebar-menu-icon icon rotate">
+          
+            &#xe62b;
+          
+        </div>
+        <div class="sidebar-menu-link">归档</div>
+      </div>
+    
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/about" aria-label="关于"></a>
+        <div class="sidebar-menu-icon icon rotate">
+          
+            &#xe62b;
+          
+        </div>
+        <div class="sidebar-menu-link">关于</div>
+      </div>
+    
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/friend" aria-label="盆友"></a>
+        <div class="sidebar-menu-icon icon rotate">
+          
+            &#xe62b;
+          
+        </div>
+        <div class="sidebar-menu-link">盆友</div>
+      </div>
+    
+  
+</div>
+</div>
+        
+      
+      
+        
+          <div class="sidebar-btn-wrapper" style="position:static">
+            <div class="sidebar-toc-btn current"></div>
+            <div class="sidebar-common-btn"></div>
+          </div>
+        
+      
+    </div>
+  </div>
+  
+  <div class="sidebar-widget">
+  
+  </div>
+  
+  </div>
+  
+</aside>
+
+          <section id="main" aria-label="Main content"><article id="post-现代密码学实验2" class="h-entry article" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-inner" data-aos="fade-up">
+    <div class="article-meta">
+      <div class="article-date">
+  <span class="article-date-link icon-calendar" data-aos="zoom-in">
+    <time datetime="2026-06-01T13:40:36.814Z" itemprop="datePublished">2026-06-01</time>
+    <time style="display: none;" id="post-update-time">2026-06-01</time>
+  </span>
+  
+</div>
+
+      
+
+    </div>
+    
+    <div class="hr-line"></div>
+    
+
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+      
+        <h1 id="现代密码学实验2aes密钥推导-ecb逐字节解密与cbc位翻转攻击"><a class="markdownIt-Anchor" href="#现代密码学实验2aes密钥推导-ecb逐字节解密与cbc位翻转攻击"></a> 现代密码学实验2：AES密钥推导、ECB逐字节解密与CBC位翻转攻击</h1>
+<p><strong>课程</strong>：现代密码学实验<br />
+<strong>实验编号</strong>：EX2<br />
+<strong>实验日期</strong>：2026 年 6 月<br />
+<strong>包含实验</strong>：BAC协议AES密钥推导 / 含前缀ECB逐字节解密（Harder）/ CBC位翻转攻击</p>
+<hr />
+<h2 id="摘要"><a class="markdownIt-Anchor" href="#摘要"></a> 摘要</h2>
+<p>本实验报告涵盖三个密码学实验，聚焦AES分组密码在不同工作模式及应用场景下的安全性分析。实验一基于欧洲电子护照（ePassport）的基本访问控制（BAC）协议，通过分析护照机器可读区（MRZ）的编码规则，推导出缺失的校验字符，进而依据ICAO 9303标准衍生出AES-128加密密钥，解密给定的CBC模式密文。实验二源自Cryptopals Set 2 Challenge 14，在Challenge 12（字节替换ECB解密）基础上引入随机长度前缀，要求攻击者在不知道前缀长度的情况下，仍能逐字节恢复AES-128-ECB加密的目标明文字节。实验三源自Cryptopals Set 2 Challenge 16，利用AES-128-CBC模式的位翻转特性，在不知晓密钥的前提下，通过精确修改前一块密文来篡改下一块明文，构造出含有&quot;;admin=true;&quot;的加密字符串，实现权限提升攻击。三个实验系统展示了分组密码弱点与实际攻击技术。</p>
+<hr />
+<h2 id="实验一aes密钥编码于欧洲电子护照机器可读区bac协议"><a class="markdownIt-Anchor" href="#实验一aes密钥编码于欧洲电子护照机器可读区bac协议"></a> 实验一：AES密钥编码于欧洲电子护照机器可读区（BAC协议）</h2>
+<h3 id="题目描述"><a class="markdownIt-Anchor" href="#题目描述"></a> 题目描述</h3>
+<p>欧洲电子护照（ePassport）采用基本访问控制（BAC）机制防止未经授权读取护照信息。BAC协议的核心是从护照底部的机器可读区（MRZ）推导出会话密钥。本实验给定一段Base64编码的AES-CBC密文（IV全零，01-00填充），以及一条含有未知校验字符<code>?</code>的MRZ字符串：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">12345678&lt;8&lt;&lt;&lt;1110182&lt;111116?&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;4</span><br></pre></td></tr></table></figure>
+<p>要求：</p>
+<ol>
+<li>利用ICAO 9303标准中的校验位算法恢复缺失字符；</li>
+<li>按BAC协议衍生 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>K</mi><mrow><mi>E</mi><mi>N</mi><mi>C</mi></mrow></msub></mrow><annotation encoding="application/x-tex">K_{ENC}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">K</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">ENC</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 密钥；</li>
+<li>解密密文，得到明文口令。</li>
+</ol>
+<p>给定密文（Base64编码）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">9MgYwmuPrjiecPMx61O6zIuy3MtIXQQ0E59T3xB6u0Gyf1gYs2i3K9Jx</span><br><span class="line">aa0zj4gTMazJuApwd6+jdyeI5iGHvhQyDHGVlAuYTgJrbFDrfB22Fpil2N</span><br><span class="line">fNnWFBTXyf7SDI</span><br></pre></td></tr></table></figure>
+<h3 id="背景与原理"><a class="markdownIt-Anchor" href="#背景与原理"></a> 背景与原理</h3>
+<p><strong>ICAO MRZ校验位算法</strong></p>
+<p>校验位使用字符集编码：<code>0-9</code> → 其本身数值，<code>A-Z</code> → <code>10-35</code>，<code>&lt;</code> → <code>0</code>。使用权重序列 <code>7, 3, 1</code> 循环作用于字符编码，取加权和模10即为校验位：</p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>C</mi><mi>D</mi><mo>=</mo><mrow><mo fence="true">(</mo><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>0</mn></mrow><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></munderover><msub><mi>w</mi><mi>i</mi></msub><mo>⋅</mo><mi>v</mi><mo stretchy="false">(</mo><msub><mi>c</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo fence="true">)</mo></mrow><mtext> </mtext><mo lspace="0.22em" rspace="0.22em"><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">d</mi></mrow></mo><mtext> </mtext><mn>10</mn></mrow><annotation encoding="application/x-tex">CD = \left(\sum_{i=0}^{n-1} w_i \cdot v(c_i)\right) \bmod 10
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.0788em;vertical-align:-1.2777em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size4">(</span></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8011em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mrel mtight">=</span><span class="mord mtight">0</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">n</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size4">)</span></span></span><span class="mspace" style="margin-right:0.0556em;"></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord"><span class="mord mathrm">mod</span></span></span><span class="mspace" style="margin-right:0.0556em;"></span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">10</span></span></span></span></span></p>
+<p>其中 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>w</mi><mi>i</mi></msub><mo>=</mo><mo stretchy="false">[</mo><mn>7</mn><mo separator="true">,</mo><mn>3</mn><mo separator="true">,</mo><mn>1</mn><msub><mo stretchy="false">]</mo><mrow><mi>i</mi><mtext> </mtext><mo lspace="0.22em" rspace="0.22em"><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">d</mi></mrow></mo><mtext> </mtext><mn>3</mn></mrow></msub></mrow><annotation encoding="application/x-tex">w_i = [7, 3, 1]_{i \bmod 3}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord">7</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">3</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mclose"><span class="mclose">]</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mspace mtight" style="margin-right:0.3253em;"></span><span class="mbin mtight"><span class="mord mtight"><span class="mord mathrm mtight">mod</span></span></span><span class="mspace mtight" style="margin-right:0.3253em;"></span><span class="mord mtight">3</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>v</mi><mo stretchy="false">(</mo><mi>c</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">v(c)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mopen">(</span><span class="mord mathnormal">c</span><span class="mclose">)</span></span></span></span> 为字符 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi></mrow><annotation encoding="application/x-tex">c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">c</span></span></span></span> 的编码值。</p>
+<p><strong>BAC协议密钥衍生（ICAO 9303 Part 1 Vol 2）</strong></p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>K_seed</mtext><mo>=</mo><mtext>SHA-1</mtext><mo stretchy="false">(</mo><mtext>MRZ_info</mtext><mo stretchy="false">)</mo><mtext> 的 hexdigest 前32字符（16字节）</mtext></mrow><annotation encoding="application/x-tex">\text{K\_seed} = \text{SHA-1}(\text{MRZ\_info})\ \text{的 hexdigest 前32字符（16字节）}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0044em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">K_seed</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">SHA-1</span></span><span class="mopen">(</span><span class="mord text"><span class="mord">MRZ_info</span></span><span class="mclose">)</span><span class="mspace"> </span><span class="mord text"><span class="mord cjk_fallback">的</span><span class="mord"> hexdigest </span><span class="mord cjk_fallback">前</span><span class="mord">32</span><span class="mord cjk_fallback">字符（</span><span class="mord">16</span><span class="mord cjk_fallback">字节）</span></span></span></span></span></span></p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>D_ENC</mtext><mo>=</mo><mtext>K_seed</mtext><mi mathvariant="normal">∥</mi><mtext>0x00000001</mtext></mrow><annotation encoding="application/x-tex">\text{D\_ENC} = \text{K\_seed} \| \text{0x00000001}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9933em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">D_ENC</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">K_seed</span></span><span class="mord">∥</span><span class="mord text"><span class="mord">0x00000001</span></span></span></span></span></span></p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>H_d</mtext><mo>=</mo><mtext>SHA-1</mtext><mo stretchy="false">(</mo><mtext>D_ENC</mtext><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\text{H\_d} = \text{SHA-1}(\text{D\_ENC})
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0044em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">H_d</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">SHA-1</span></span><span class="mopen">(</span><span class="mord text"><span class="mord">D_ENC</span></span><span class="mclose">)</span></span></span></span></span></p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>ka</mtext><mo>=</mo><mtext>H_d</mtext><mo stretchy="false">[</mo><mn>0</mn><mo>:</mo><mn>16</mn><mo stretchy="false">]</mo><mo separator="true">,</mo><mtext> kb</mtext><mo>=</mo><mtext>H_d</mtext><mo stretchy="false">[</mo><mn>16</mn><mo>:</mo><mn>32</mn><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">\text{ka} = \text{H\_d}[0:16],\ \text{kb} = \text{H\_d}[16:32]
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord text"><span class="mord">ka</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">H_d</span></span><span class="mopen">[</span><span class="mord">0</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">:</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">16</span><span class="mclose">]</span><span class="mpunct">,</span><span class="mspace"> </span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord text"><span class="mord">kb</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">H_d</span></span><span class="mopen">[</span><span class="mord">16</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">:</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">32</span><span class="mclose">]</span></span></span></span></span></p>
+<p>然后分别对 ka、kb 做 DES 奇偶校验位调整（每字节最低位置为奇校验位），最终 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>K</mi><mrow><mi>E</mi><mi>N</mi><mi>C</mi></mrow></msub><mo>=</mo><mtext>调整后的 ka</mtext><mi mathvariant="normal">∥</mi><mtext>调整后的 kb</mtext></mrow><annotation encoding="application/x-tex">K_{ENC} = \text{调整后的 ka} \| \text{调整后的 kb}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">K</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">ENC</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord cjk_fallback">调整后的</span><span class="mord"> ka</span></span><span class="mord">∥</span><span class="mord text"><span class="mord cjk_fallback">调整后的</span><span class="mord"> kb</span></span></span></span></span>（16字节）。</p>
+<p>其中 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext>MRZ_info</mtext></mrow><annotation encoding="application/x-tex">\text{MRZ\_info}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0044em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">MRZ_info</span></span></span></span></span> 由文件号+校验位、出生日期+校验位、有效期+校验位拼接而成。</p>
+<p><strong>AES-128-CBC解密</strong></p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>P</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>=</mo><mtext>AES_Dec</mtext><mo stretchy="false">(</mo><msub><mi>K</mi><mrow><mi>E</mi><mi>N</mi><mi>C</mi></mrow></msub><mo separator="true">,</mo><mi>C</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">)</mo><mo>⊕</mo><mi>C</mi><mo stretchy="false">[</mo><mi>i</mi><mo>−</mo><mn>1</mn><mo stretchy="false">]</mo><mo separator="true">,</mo><mspace width="1em"/><mi>C</mi><mo stretchy="false">[</mo><mn>0</mn><mo stretchy="false">]</mo><mo>=</mo><mi>I</mi><mi>V</mi><mo>=</mo><msup><mn>0</mn><mn>128</mn></msup></mrow><annotation encoding="application/x-tex">P[i] = \text{AES\_Dec}(K_{ENC}, C[i]) \oplus C[i-1], \quad C[0] = IV = 0^{128}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">AES_Dec</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">K</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">ENC</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mclose">])</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⊕</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">]</span><span class="mpunct">,</span><span class="mspace" style="margin-right:1em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">[</span><span class="mord">0</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">I</span><span class="mord mathnormal" style="margin-right:0.22222em;">V</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8641em;"></span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">128</span></span></span></span></span></span></span></span></span></span></span></span></span></p>
+<h3 id="实现步骤"><a class="markdownIt-Anchor" href="#实现步骤"></a> 实现步骤</h3>
+<p><strong>Step 1</strong>：实现ICAO校验位算法，计算有效期字段 <code>111116</code> 的校验位，得到缺失字符 <code>?</code> 为数字 <code>7</code>。</p>
+<p><strong>Step 2</strong>：提取MRZ各字段：</p>
+<ul>
+<li>文件号字段：<code>12345678&lt;</code>（校验位 <code>8</code>）</li>
+<li>出生日期字段：<code>111018</code>（校验位 <code>2</code>）</li>
+<li>有效期字段：<code>111116</code>（校验位 <code>7</code>，即丢失的 <code>?</code>）</li>
+</ul>
+<p>构造 MRZ_info = <code>12345678&lt;811101821111167</code>（24字符），计算 SHA-1，取 hexdigest 前32字符为 K_seed。</p>
+<p><strong>Step 3</strong>：将 K_seed 拼接 <code>00000001</code> 后再次 SHA-1，得到 H_d。取 H_d 前16字符为 ka、后16字符为 kb，分别做 DES 奇偶校验位调整（每字节最低位置为奇校验位），拼接得到 16 字节 K_ENC。</p>
+<p><strong>Step 4</strong>：Base64解码密文，使用AES-128-CBC（IV=<code>0x00</code>×16）解密，去除01-00填充后输出明文口令。</p>
+<h3 id="完整代码"><a class="markdownIt-Anchor" href="#完整代码"></a> 完整代码</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">实验1：AES密钥编码于欧洲电子护照MRZ（BAC协议）</span></span><br><span class="line"><span class="string">来源：mtc3-hick-01-BAC-en.pdf</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">题目描述：</span></span><br><span class="line"><span class="string">  一段 AES-CBC 加密的 Base64 密文（IV=全零，01-00 填充），</span></span><br><span class="line"><span class="string">  以及一条含有未知字符（用 ? 标记）的 MRZ 字符串：</span></span><br><span class="line"><span class="string">      12345678&lt;8&lt;&lt;&lt;1110182&lt;111116?&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;4</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">目标：推导 K_ENC，解密密文，找到隐藏的关键词。</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">密钥推导流程（ICAO 9303）：</span></span><br><span class="line"><span class="string">  1. 从MRZ提取字段，计算校验位，拼接 MRZ_info（24字符）</span></span><br><span class="line"><span class="string">  2. K_seed = SHA-1(MRZ_info) 的 hexdigest 前32字符（16字节）</span></span><br><span class="line"><span class="string">  3. D_ENC = K_seed + &quot;00000001&quot;</span></span><br><span class="line"><span class="string">  4. H_d = SHA-1(D_ENC) 的 hexdigest</span></span><br><span class="line"><span class="string">  5. ka = H_d[0:16], kb = H_d[16:32]（各8字节hex）</span></span><br><span class="line"><span class="string">  6. ka, kb 分别做 DES 奇偶校验位调整</span></span><br><span class="line"><span class="string">  7. K_ENC = 调整后的 ka + kb（16字节=128位）</span></span><br><span class="line"><span class="string">  8. AES-128-CBC (IV=0^128) 解密</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> hashlib</span><br><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"><span class="keyword">from</span> Crypto.Cipher <span class="keyword">import</span> AES</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="comment"># ICAO 9303 校验位计算</span></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line">WEIGHTS = [<span class="number">7</span>, <span class="number">3</span>, <span class="number">1</span>]</span><br><span class="line">CHAR_VAL = &#123;<span class="built_in">str</span>(i): i <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">10</span>)&#125;</span><br><span class="line">CHAR_VAL.update(&#123;c: i + <span class="number">10</span> <span class="keyword">for</span> i, c <span class="keyword">in</span> <span class="built_in">enumerate</span>(<span class="string">&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZ&quot;</span>)&#125;)</span><br><span class="line">CHAR_VAL[<span class="string">&quot;&lt;&quot;</span>] = <span class="number">0</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">check_digit</span>(<span class="params">s: <span class="built_in">str</span></span>) -&gt; <span class="built_in">str</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;计算 ICAO 9303 校验位&quot;&quot;&quot;</span></span><br><span class="line">    total = <span class="built_in">sum</span>(CHAR_VAL.get(ch.upper(), <span class="number">0</span>) * WEIGHTS[i % <span class="number">3</span>] <span class="keyword">for</span> i, ch <span class="keyword">in</span> <span class="built_in">enumerate</span>(s))</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">str</span>(total % <span class="number">10</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="comment"># DES 奇偶校验位调整</span></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">des_parity_adjust</span>(<span class="params">hex_str: <span class="built_in">str</span></span>) -&gt; <span class="built_in">str</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    对 hex 字符串表示的字节序列做 DES 奇偶校验调整：</span></span><br><span class="line"><span class="string">    每字节（8位）的最低位置为奇校验位（使该字节的二进制1个数为奇数）。</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    k = []</span><br><span class="line">    a = <span class="built_in">bin</span>(<span class="built_in">int</span>(hex_str, <span class="number">16</span>))[<span class="number">2</span>:]  <span class="comment"># 去掉 &quot;0b&quot; 前缀</span></span><br><span class="line">    a = a.zfill(<span class="built_in">len</span>(hex_str) * <span class="number">4</span>)  <span class="comment"># 补齐到完整位数</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, <span class="built_in">len</span>(a), <span class="number">8</span>):</span><br><span class="line">        <span class="keyword">if</span> (a[i : i + <span class="number">7</span>].count(<span class="string">&quot;1&quot;</span>)) % <span class="number">2</span> == <span class="number">0</span>:</span><br><span class="line">            k.append(a[i : i + <span class="number">7</span>])</span><br><span class="line">            k.append(<span class="string">&quot;1&quot;</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            k.append(a[i : i + <span class="number">7</span>])</span><br><span class="line">            k.append(<span class="string">&quot;0&quot;</span>)</span><br><span class="line">    result = <span class="built_in">hex</span>(<span class="built_in">int</span>(<span class="string">&quot;&quot;</span>.join(k), <span class="number">2</span>))</span><br><span class="line">    <span class="keyword">return</span> result[<span class="number">2</span>:]  <span class="comment"># 去掉 &quot;0x&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="comment"># BAC K_ENC 密钥衍生</span></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">derive_kenc</span>(<span class="params">mrz_info: <span class="built_in">str</span></span>) -&gt; <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    ICAO 9303 BAC K_ENC 密钥衍生（含 DES 奇偶校验调整）</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    mrz_info = doc_no(9) + chk_doc(1) + dob(6) + chk_dob(1) + doe(6) + chk_doe(1)</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># Step 1: K_seed = SHA-1(MRZ_info) hexdigest 前32字符（16字节）</span></span><br><span class="line">    H_info = hashlib.sha1(mrz_info.encode(<span class="string">&quot;ascii&quot;</span>)).hexdigest()</span><br><span class="line">    K_seed = H_info[:<span class="number">32</span>]</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;    [1] SHA-1(MRZ_info) = <span class="subst">&#123;H_info&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;    [2] K_seed           = <span class="subst">&#123;K_seed&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Step 2: D_ENC = K_seed || 0x00000001</span></span><br><span class="line">    D_ENC = K_seed + <span class="string">&quot;00000001&quot;</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;    [3] D_ENC            = <span class="subst">&#123;D_ENC&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Step 3: H_d = SHA-1(D_ENC)</span></span><br><span class="line">    H_d = hashlib.sha1(<span class="built_in">bytes</span>.fromhex(D_ENC)).hexdigest()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;    [4] H_d              = <span class="subst">&#123;H_d&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Step 4: ka = H_d[0:16], kb = H_d[16:32]</span></span><br><span class="line">    ka = H_d[:<span class="number">16</span>]</span><br><span class="line">    kb = H_d[<span class="number">16</span>:<span class="number">32</span>]</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;    [5] ka               = <span class="subst">&#123;ka&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;    [6] kb               = <span class="subst">&#123;kb&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Step 5: 奇偶校验调整</span></span><br><span class="line">    k1 = des_parity_adjust(ka)</span><br><span class="line">    k2 = des_parity_adjust(kb)</span><br><span class="line">    key_hex = k1 + k2</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;    [7] K_ENC (adjusted) = <span class="subst">&#123;key_hex&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">bytes</span>.fromhex(key_hex)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="comment"># AES-128-CBC 解密</span></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">aes_cbc_decrypt</span>(<span class="params">key: <span class="built_in">bytes</span>, ciphertext: <span class="built_in">bytes</span></span>) -&gt; <span class="built_in">bytes</span>:</span><br><span class="line">    iv = <span class="built_in">bytes</span>.fromhex(<span class="string">&quot;00000000000000000000000000000000&quot;</span>)</span><br><span class="line">    cipher = AES.new(key, AES.MODE_CBC, iv)</span><br><span class="line">    <span class="keyword">return</span> cipher.decrypt(ciphertext)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">try_unpad_01_00</span>(<span class="params">data: <span class="built_in">bytes</span></span>) -&gt; <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;01-00 padding 去填充&quot;&quot;&quot;</span></span><br><span class="line">    data = data.rstrip(<span class="string">b&quot;\x00&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> data <span class="keyword">and</span> data[-<span class="number">1</span>] == <span class="number">0x01</span>:</span><br><span class="line">        <span class="keyword">return</span> data[:-<span class="number">1</span>]</span><br><span class="line">    <span class="keyword">return</span> data</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="comment"># 题目参数</span></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line">CIPHERTEXT_B64 = (</span><br><span class="line">    <span class="string">&quot;9MgYwmuPrjiecPMx61O6zIuy3MtIXQQ0E59T3xB6u0Gyf1gYs2i3K9Jx&quot;</span></span><br><span class="line">    <span class="string">&quot;aa0zj4gTMazJuApwd6+jdyeI5iGHvhQyDHGVlAuYTgJrbFDrfB22Fpil2N&quot;</span></span><br><span class="line">    <span class="string">&quot;fNnWFBTXyf7SDI&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># MRZ 下半行（44字符）</span></span><br><span class="line"><span class="comment"># 12345678&lt;8&lt;&lt;&lt;1110182&lt;111116?&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;4</span></span><br><span class="line"><span class="comment"># 分解（ICAO 9303 TD3 格式）：</span></span><br><span class="line"><span class="comment">#   [0:9]   = &quot;12345678&lt;&quot;  文件号</span></span><br><span class="line"><span class="comment">#   [9]     = &quot;8&quot;          文件号校验位</span></span><br><span class="line"><span class="comment">#   [10:13] = &quot;&lt;&lt;&lt;&quot;        可选数据（国籍等，BAC忽略）</span></span><br><span class="line"><span class="comment">#   [13:19] = &quot;111018&quot;     出生日期 YYMMDD</span></span><br><span class="line"><span class="comment">#   [19]    = &quot;2&quot;          出生日期校验位</span></span><br><span class="line"><span class="comment">#   [20]    = &quot;&lt;&quot;          性别（忽略）</span></span><br><span class="line"><span class="comment">#   [21:27] = &quot;111116&quot;     有效期 YYMMDD</span></span><br><span class="line"><span class="comment">#   [27]    = &quot;?&quot;          有效期校验位 ← 丢失</span></span><br><span class="line"><span class="comment">#   [28:42] = &quot;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&quot; 可选数据</span></span><br><span class="line"><span class="comment">#   [42]    = &quot;&lt;&quot;          填充</span></span><br><span class="line"><span class="comment">#   [43]    = &quot;4&quot;          综合校验位</span></span><br><span class="line"></span><br><span class="line">DOCUMENT_NUMBER = <span class="string">&quot;12345678&lt;&quot;</span>  <span class="comment"># 9字符文件号</span></span><br><span class="line">DATE_OF_BIRTH = <span class="string">&quot;111018&quot;</span>       <span class="comment"># 出生日期 YYMMDD</span></span><br><span class="line">DATE_OF_EXPIRY = <span class="string">&quot;111116&quot;</span>      <span class="comment"># 有效期 YYMMDD</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="comment"># Main</span></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;=&quot;</span> * <span class="number">60</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;实验1：ICAO BAC 协议 AES 密钥衍生与解密&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;=&quot;</span> * <span class="number">60</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 解码密文</span></span><br><span class="line">    ciphertext = base64.b64decode(CIPHERTEXT_B64 + <span class="string">&quot;==&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;\n[*] 密文长度 = <span class="subst">&#123;<span class="built_in">len</span>(ciphertext)&#125;</span> 字节 (<span class="subst">&#123;<span class="built_in">len</span>(ciphertext)//<span class="number">16</span>&#125;</span> 个 AES 块)&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Step 1: 校验位验证</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;\n<span class="subst">&#123;<span class="string">&#x27;=&#x27;</span>*<span class="number">40</span>&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[Step 1] ICAO 9303 校验位计算&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;<span class="subst">&#123;<span class="string">&#x27;=&#x27;</span>*<span class="number">40</span>&#125;</span>&quot;</span>)</span><br><span class="line">    d = check_digit(DOCUMENT_NUMBER)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;  文件号 &#x27;<span class="subst">&#123;DOCUMENT_NUMBER&#125;</span>&#x27; → 校验位 = <span class="subst">&#123;d&#125;</span>（题目给出 8，<span class="subst">&#123;<span class="string">&#x27;✓&#x27;</span> <span class="keyword">if</span> d==<span class="string">&#x27;8&#x27;</span> <span class="keyword">else</span> <span class="string">&#x27;✗&#x27;</span>&#125;</span>）&quot;</span>)</span><br><span class="line"></span><br><span class="line">    b = check_digit(DATE_OF_BIRTH)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;  出生日期 &#x27;<span class="subst">&#123;DATE_OF_BIRTH&#125;</span>&#x27; → 校验位 = <span class="subst">&#123;b&#125;</span>（题目给出 2，<span class="subst">&#123;<span class="string">&#x27;✓&#x27;</span> <span class="keyword">if</span> b==<span class="string">&#x27;2&#x27;</span> <span class="keyword">else</span> <span class="string">&#x27;✗&#x27;</span>&#125;</span>）&quot;</span>)</span><br><span class="line"></span><br><span class="line">    correct_chk = check_digit(DATE_OF_EXPIRY)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;  有效期 &#x27;<span class="subst">&#123;DATE_OF_EXPIRY&#125;</span>&#x27; → 校验位 = <span class="subst">&#123;correct_chk&#125;</span>（丢失字符 ? 应为此值）&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;  → 丢失字符 ? = <span class="subst">&#123;correct_chk&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Step 2: 构造 MRZ_info</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;\n<span class="subst">&#123;<span class="string">&#x27;=&#x27;</span>*<span class="number">40</span>&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[Step 2] 构造 MRZ_info 并推导 K_ENC&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;<span class="subst">&#123;<span class="string">&#x27;=&#x27;</span>*<span class="number">40</span>&#125;</span>&quot;</span>)</span><br><span class="line">    mrz_info = (</span><br><span class="line">        DOCUMENT_NUMBER + check_digit(DOCUMENT_NUMBER)</span><br><span class="line">        + DATE_OF_BIRTH + check_digit(DATE_OF_BIRTH)</span><br><span class="line">        + DATE_OF_EXPIRY + check_digit(DATE_OF_EXPIRY)</span><br><span class="line">    )</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;  MRZ_info = <span class="subst">&#123;mrz_info&#125;</span>（共 <span class="subst">&#123;<span class="built_in">len</span>(mrz_info)&#125;</span> 字符）\n&quot;</span>)</span><br><span class="line"></span><br><span class="line">    key = derive_kenc(mrz_info)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Step 3: 解密</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;\n<span class="subst">&#123;<span class="string">&#x27;=&#x27;</span>*<span class="number">40</span>&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[Step 3] AES-128-CBC 解密&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;<span class="subst">&#123;<span class="string">&#x27;=&#x27;</span>*<span class="number">40</span>&#125;</span>&quot;</span>)</span><br><span class="line">    plaintext_raw = aes_cbc_decrypt(key, ciphertext)</span><br><span class="line">    plaintext = try_unpad_01_00(plaintext_raw)</span><br><span class="line">    decoded = plaintext.decode(<span class="string">&quot;utf-8&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;  密文（前32字节hex）: <span class="subst">&#123;ciphertext[:<span class="number">32</span>].<span class="built_in">hex</span>()&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;  K_ENC = <span class="subst">&#123;key.<span class="built_in">hex</span>()&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;  IV    = 00000000000000000000000000000000&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;  解密结果:&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;    <span class="subst">&#123;decoded&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 提取口令</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;\n<span class="subst">&#123;<span class="string">&#x27;=&#x27;</span>*<span class="number">60</span>&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;[结论] 丢失字符 ? = <span class="subst">&#123;correct_chk&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;[结论] 口令（Codewort）= Kryptographie!&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;<span class="subst">&#123;<span class="string">&#x27;=&#x27;</span>*<span class="number">60</span>&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;\n实验1 完成。&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    main()</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="运行截图"><a class="markdownIt-Anchor" href="#运行截图"></a> 运行截图</h3>
+<p><img src="/images/posts/shiyan2/1.png" alt="实验一截图" /></p>
+<hr />
+<h2 id="实验二逐字节ecb解密困难版-cryptopals-set-2-challenge-14"><a class="markdownIt-Anchor" href="#实验二逐字节ecb解密困难版-cryptopals-set-2-challenge-14"></a> 实验二：逐字节ECB解密（困难版）—— Cryptopals Set 2 Challenge 14</h2>
+<h3 id="题目描述-2"><a class="markdownIt-Anchor" href="#题目描述-2"></a> 题目描述</h3>
+<p>在Challenge 12（Byte-at-a-time ECB decryption）中，加密Oracle为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AES-128-ECB(attacker_input || target_bytes, random_key)</span><br></pre></td></tr></table></figure>
+<p>Challenge 14在此基础上，加入随机长度（1-100字节）的随机前缀：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AES-128-ECB(random_prefix || attacker_input || target_bytes, random_key)</span><br></pre></td></tr></table></figure>
+<p>前缀长度和内容均未知，攻击者无法直接对齐块边界。目标仍是逐字节恢复 <code>target_bytes</code> 的全部内容。</p>
+<blockquote>
+<p><strong>“Stop and think.”</strong> What’s harder than challenge #12? Think “STIMULUS” and “RESPONSE”.</p>
+</blockquote>
+<h3 id="背景与原理-2"><a class="markdownIt-Anchor" href="#背景与原理-2"></a> 背景与原理</h3>
+<p>ECB模式的核心弱点：<strong>相同明文块产生相同密文块</strong>（确定性）。</p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>AES-ECB</mtext><mo stretchy="false">(</mo><msub><mi>P</mi><mn>1</mn></msub><mi mathvariant="normal">∥</mi><msub><mi>P</mi><mn>2</mn></msub><mi mathvariant="normal">∥</mi><mo>⋯</mo><mtext> </mtext><mo stretchy="false">)</mo><mo>=</mo><mtext>AES</mtext><mo stretchy="false">(</mo><msub><mi>P</mi><mn>1</mn></msub><mo stretchy="false">)</mo><mi mathvariant="normal">∥</mi><mtext>AES</mtext><mo stretchy="false">(</mo><msub><mi>P</mi><mn>2</mn></msub><mo stretchy="false">)</mo><mi mathvariant="normal">∥</mi><mo>⋯</mo></mrow><annotation encoding="application/x-tex">\text{AES-ECB}(P_1 \| P_2 \| \cdots) = \text{AES}(P_1) \| \text{AES}(P_2) \| \cdots
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">AES-ECB</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∥</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∥</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner">⋯</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">AES</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mord">∥</span><span class="mord text"><span class="mord">AES</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mord">∥</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner">⋯</span></span></span></span></span></p>
+<p><strong>前缀处理思路</strong>：</p>
+<ol>
+<li>向Oracle提交2×16个相同字节 <code>A</code>，观察密文中出现的连续相同块</li>
+<li>连续相同块之前的完整块即为前缀所占用的块数</li>
+<li>逐步调整填充字节数直到相同块稳定出现，计算前缀在最后一块中占用的字节数</li>
+</ol>
+<p>设前缀长度为 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>l</mi><mo>=</mo><mn>16</mn><mi>q</mi><mo>+</mo><mi>r</mi></mrow><annotation encoding="application/x-tex">l = 16q + r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8389em;vertical-align:-0.1944em;"></span><span class="mord">16</span><span class="mord mathnormal" style="margin-right:0.03588em;">q</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span>，则需要填充 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><mn>16</mn><mo>−</mo><mi>r</mi><mo stretchy="false">)</mo><mtext> </mtext><mo lspace="0.22em" rspace="0.22em"><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">d</mi></mrow></mo><mtext> </mtext><mn>16</mn></mrow><annotation encoding="application/x-tex">(16 - r) \bmod 16</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">16</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.0556em;"></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord"><span class="mord mathrm">mod</span></span></span><span class="mspace" style="margin-right:0.0556em;"></span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">16</span></span></span></span> 字节，使前缀+填充恰好对齐 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">q+1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">q</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span> 块。</p>
+<p><strong>后续步骤</strong>与Challenge 12完全相同：利用对齐后的边界，逐字节构造字典查表恢复target_bytes。</p>
+<h3 id="实现步骤-2"><a class="markdownIt-Anchor" href="#实现步骤-2"></a> 实现步骤</h3>
+<p><strong>Step 1</strong>：构造含随机密钥、随机长度前缀的加密Oracle，以及固定的target_bytes（即原Challenge 12的目标字符串）。</p>
+<p><strong>Step 2</strong>：探测前缀长度：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 提交 2×blocksize 个相同字节</span></span><br><span class="line">payload = <span class="string">b&#x27;A&#x27;</span> * (<span class="number">2</span> * <span class="number">16</span>)</span><br><span class="line">ct = oracle(payload)</span><br><span class="line">blocks = [ct[i:i+<span class="number">16</span>] <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, <span class="built_in">len</span>(ct), <span class="number">16</span>)]</span><br><span class="line"><span class="comment"># 找第一对相同相邻块的位置</span></span><br><span class="line">prefix_blocks = <span class="built_in">next</span>(i <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(blocks)-<span class="number">1</span>) <span class="keyword">if</span> blocks[i] == blocks[i+<span class="number">1</span>])</span><br><span class="line"><span class="comment"># 调整填充量</span></span><br><span class="line"><span class="keyword">for</span> pad_len <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">16</span>):</span><br><span class="line">    ct = oracle(<span class="string">b&#x27;A&#x27;</span> * (pad_len + <span class="number">2</span>*<span class="number">16</span>))</span><br><span class="line">    blocks = [ct[i:i+<span class="number">16</span>] <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, <span class="built_in">len</span>(ct), <span class="number">16</span>)]</span><br><span class="line">    <span class="keyword">if</span> blocks[prefix_blocks] == blocks[prefix_blocks+<span class="number">1</span>]:</span><br><span class="line">        prefix_align = pad_len</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">prefix_len = prefix_blocks * <span class="number">16</span> + (<span class="number">16</span> - prefix_align) % <span class="number">16</span></span><br></pre></td></tr></table></figure>
+<p><strong>Step 3</strong>：在前缀+对齐字节之后，采用与Challenge 12相同的逐字节字典攻击，恢复每一个target字节：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(target)):</span><br><span class="line">    <span class="comment"># 构造仅差一个字节的已知边界块</span></span><br><span class="line">    known = <span class="string">b&#x27;A&#x27;</span> * (blocksize - <span class="number">1</span> - (i % blocksize))</span><br><span class="line">    ref = oracle(prefix_padding + known)[start:start+blocksize]</span><br><span class="line">    <span class="keyword">for</span> b <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">256</span>):</span><br><span class="line">        guess_block = oracle(prefix_padding + known + recovered + <span class="built_in">bytes</span>([b]))[start:start+blocksize]</span><br><span class="line">        <span class="keyword">if</span> guess_block == ref:</span><br><span class="line">            recovered += <span class="built_in">bytes</span>([b])</span><br><span class="line">            <span class="keyword">break</span></span><br></pre></td></tr></table></figure>
+<h3 id="完整代码-2"><a class="markdownIt-Anchor" href="#完整代码-2"></a> 完整代码</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">实验2：逐字节ECB解密（困难版）— Cryptopals Challenge 14</span></span><br><span class="line"><span class="string">来源：Challenge 14 Set 2 - The Cryptopals Crypto Challenges</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">加密 Oracle:</span></span><br><span class="line"><span class="string">    AES-128-ECB(random_prefix || attacker_input || target_bytes, fixed_random_key)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">与 Challenge 12 的区别：加入了随机长度前缀（1-100字节），前缀长度和内容均未知。</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">攻击策略（STIMULUS-RESPONSE）：</span></span><br><span class="line"><span class="string">  1. 发送一大块相同字节（如 &quot;A&quot;*48），观察密文中的重复块位置</span></span><br><span class="line"><span class="string">     → 找到第一个由攻击者控制的整块起始位置</span></span><br><span class="line"><span class="string">  2. 确定前缀对齐所需填充长度 pad_len</span></span><br><span class="line"><span class="string">  3. 用逐字节替换攻击还原 target_bytes（与 Challenge 12 相同）</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">核心思路：</span></span><br><span class="line"><span class="string">  ECB 的确定性意味着&quot;相同明文块 → 相同密文块&quot;。</span></span><br><span class="line"><span class="string">  前缀虽然随机，但一旦我们通过填充将前缀对齐到块边界，</span></span><br><span class="line"><span class="string">  后续攻击就和 Challenge 12 完全一样了。</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"><span class="keyword">from</span> Crypto.Cipher <span class="keyword">import</span> AES</span><br><span class="line"></span><br><span class="line">BLOCK_SIZE = <span class="number">16</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="comment"># PKCS#7 填充 / 去填充</span></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">pkcs7_pad</span>(<span class="params">data: <span class="built_in">bytes</span>, block_size: <span class="built_in">int</span> = BLOCK_SIZE</span>) -&gt; <span class="built_in">bytes</span>:</span><br><span class="line">    pad_len = block_size - (<span class="built_in">len</span>(data) % block_size)</span><br><span class="line">    <span class="keyword">return</span> data + <span class="built_in">bytes</span>([pad_len] * pad_len)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">pkcs7_unpad</span>(<span class="params">data: <span class="built_in">bytes</span></span>) -&gt; <span class="built_in">bytes</span>:</span><br><span class="line">    pad_len = data[-<span class="number">1</span>]</span><br><span class="line">    <span class="keyword">if</span> pad_len &lt; <span class="number">1</span> <span class="keyword">or</span> pad_len &gt; BLOCK_SIZE:</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">&quot;Invalid padding&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> data[-pad_len:] != <span class="built_in">bytes</span>([pad_len] * pad_len):</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">&quot;Invalid padding bytes&quot;</span>)</span><br><span class="line">    <span class="keyword">return</span> data[:-pad_len]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="comment"># 固定随机 Key 和随机前缀（模拟服务端状态）</span></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line">_KEY = os.urandom(<span class="number">16</span>)</span><br><span class="line">_RANDOM_PREFIX = os.urandom(os.urandom(<span class="number">1</span>)[<span class="number">0</span>] % <span class="number">32</span> + <span class="number">5</span>)  <span class="comment"># 5~36 字节随机前缀</span></span><br><span class="line"></span><br><span class="line">TARGET_B64 = (</span><br><span class="line">    <span class="string">&quot;Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg&quot;</span></span><br><span class="line">    <span class="string">&quot;aGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBq&quot;</span></span><br><span class="line">    <span class="string">&quot;dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3AgTm8gSSBqdXN0IGRyb3ZlIGJ5&quot;</span></span><br><span class="line">)</span><br><span class="line">TARGET_BYTES = base64.b64decode(TARGET_B64)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">encryption_oracle</span>(<span class="params">attacker_input: <span class="built_in">bytes</span></span>) -&gt; <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;模拟受害者加密 Oracle&quot;&quot;&quot;</span></span><br><span class="line">    plaintext = pkcs7_pad(_RANDOM_PREFIX + attacker_input + TARGET_BYTES)</span><br><span class="line">    cipher = AES.new(_KEY, AES.MODE_ECB)</span><br><span class="line">    <span class="keyword">return</span> cipher.encrypt(plaintext)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="comment"># 工具函数</span></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">split_blocks</span>(<span class="params">data: <span class="built_in">bytes</span>, bs: <span class="built_in">int</span> = BLOCK_SIZE</span>):</span><br><span class="line">    <span class="keyword">return</span> [data[i : i + bs] <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, <span class="built_in">len</span>(data), bs)]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">detect_block_size</span>(<span class="params">oracle</span>) -&gt; <span class="built_in">int</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;通过观察密文长度增长来确定块大小&quot;&quot;&quot;</span></span><br><span class="line">    initial = <span class="built_in">len</span>(oracle(<span class="string">b&quot;&quot;</span>))</span><br><span class="line">    <span class="keyword">for</span> n <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, <span class="number">64</span>):</span><br><span class="line">        new_len = <span class="built_in">len</span>(oracle(<span class="string">b&quot;A&quot;</span> * n))</span><br><span class="line">        <span class="keyword">if</span> new_len &gt; initial:</span><br><span class="line">            <span class="keyword">return</span> new_len - initial</span><br><span class="line">    <span class="keyword">return</span> BLOCK_SIZE</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">detect_prefix_info</span>(<span class="params">oracle, bs: <span class="built_in">int</span></span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    返回 (prefix_blocks, pad_len)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    prefix_blocks : 前缀完整占用的块数</span></span><br><span class="line"><span class="string">    pad_len       : 需要补充多少字节才能使前缀对齐到块边界</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    方法：发送 3*bs 个相同字节，在密文中寻找连续两个相同块，</span></span><br><span class="line"><span class="string">          其起始位置即对齐后攻击者控制的第一块。</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 发送大块相同字节，寻找重复块</span></span><br><span class="line">    probe = <span class="string">b&quot;A&quot;</span> * (<span class="number">3</span> * bs)</span><br><span class="line">    ct = oracle(probe)</span><br><span class="line">    blocks = split_blocks(ct, bs)</span><br><span class="line"></span><br><span class="line">    prefix_blocks = <span class="literal">None</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(blocks) - <span class="number">1</span>):</span><br><span class="line">        <span class="keyword">if</span> blocks[i] == blocks[i + <span class="number">1</span>]:</span><br><span class="line">            prefix_blocks = i</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> prefix_blocks <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="keyword">raise</span> RuntimeError(<span class="string">&quot;无法找到重复块，前缀可能过长&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 通过二分找最小对齐填充长度</span></span><br><span class="line">    <span class="keyword">for</span> pad_len <span class="keyword">in</span> <span class="built_in">range</span>(bs):</span><br><span class="line">        ct2 = oracle(<span class="string">b&quot;A&quot;</span> * (pad_len + <span class="number">2</span> * bs))</span><br><span class="line">        blks = split_blocks(ct2, bs)</span><br><span class="line">        <span class="keyword">if</span> blks[prefix_blocks] == blks[prefix_blocks + <span class="number">1</span>]:</span><br><span class="line">            <span class="keyword">return</span> prefix_blocks, pad_len</span><br><span class="line"></span><br><span class="line">    <span class="keyword">raise</span> RuntimeError(<span class="string">&quot;无法确定对齐填充长度&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="comment"># 逐字节 ECB 解密攻击</span></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">byte_at_a_time_ecb_hard</span>(<span class="params">oracle</span>) -&gt; <span class="built_in">bytes</span>:</span><br><span class="line">    bs = detect_block_size(oracle)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;[Step 1] 检测到块大小 = <span class="subst">&#123;bs&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    prefix_blocks, pad_len = detect_prefix_info(oracle, bs)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;[Step 2] 前缀占 <span class="subst">&#123;prefix_blocks&#125;</span> 个完整块，对齐需填充 <span class="subst">&#123;pad_len&#125;</span> 字节&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 构造对齐后的 oracle：去掉前缀块，只返回攻击者控制部分</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">aligned_oracle</span>(<span class="params">data: <span class="built_in">bytes</span></span>) -&gt; <span class="built_in">bytes</span>:</span><br><span class="line">        ct = oracle(<span class="string">b&quot;A&quot;</span> * pad_len + data)</span><br><span class="line">        <span class="keyword">return</span> ct[prefix_blocks * bs :]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 探测目标长度（对齐后）</span></span><br><span class="line">    base_len = <span class="built_in">len</span>(aligned_oracle(<span class="string">b&quot;&quot;</span>))</span><br><span class="line">    <span class="keyword">for</span> n <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, bs + <span class="number">1</span>):</span><br><span class="line">        new_len = <span class="built_in">len</span>(aligned_oracle(<span class="string">b&quot;A&quot;</span> * n))</span><br><span class="line">        <span class="keyword">if</span> new_len &gt; base_len:</span><br><span class="line">            target_len = base_len - n</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        target_len = base_len</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;[Step 3] target_bytes 长度 = <span class="subst">&#123;target_len&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    recovered = <span class="built_in">bytearray</span>()</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;[Step 4] 逐字节字典攻击...&quot;</span>)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(target_len):</span><br><span class="line">        block_idx = i // bs       <span class="comment"># 目标字节所在块编号</span></span><br><span class="line">        byte_pos = i % bs          <span class="comment"># 在该块内的位置</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 构造&quot;已知前缀&quot;：让目标字节落在某个块的最后一个字节</span></span><br><span class="line">        prefix_input = <span class="string">b&quot;A&quot;</span> * (bs - <span class="number">1</span> - byte_pos)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 获取参考密文块</span></span><br><span class="line">        reference_ct = aligned_oracle(prefix_input)</span><br><span class="line">        target_block = reference_ct[block_idx * bs : (block_idx + <span class="number">1</span>) * bs]</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 暴力枚举该字节</span></span><br><span class="line">        found = <span class="literal">False</span></span><br><span class="line">        <span class="keyword">for</span> byte_val <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">256</span>):</span><br><span class="line">            dict_input = prefix_input + <span class="built_in">bytes</span>(recovered) + <span class="built_in">bytes</span>([byte_val])</span><br><span class="line">            dict_ct = aligned_oracle(dict_input)</span><br><span class="line">            dict_block = dict_ct[block_idx * bs : (block_idx + <span class="number">1</span>) * bs]</span><br><span class="line">            <span class="keyword">if</span> dict_block == target_block:</span><br><span class="line">                recovered.append(byte_val)</span><br><span class="line">                found = <span class="literal">True</span></span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> found:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;  [!] 字节 <span class="subst">&#123;i&#125;</span> 枚举失败（可能是填充字节），停止&quot;</span>)</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (i + <span class="number">1</span>) % <span class="number">16</span> == <span class="number">0</span> <span class="keyword">or</span> i == target_len - <span class="number">1</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;  [*] 已还原 <span class="subst">&#123;i + <span class="number">1</span>&#125;</span>/<span class="subst">&#123;target_len&#125;</span> 字节...&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">bytes</span>(recovered)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="comment"># Main</span></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;=&quot;</span> * <span class="number">60</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;实验2：逐字节ECB解密（困难版）— Cryptopals Challenge 14&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;=&quot;</span> * <span class="number">60</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;\n[Oracle] 随机前缀长度 = <span class="subst">&#123;<span class="built_in">len</span>(_RANDOM_PREFIX)&#125;</span> 字节（攻击者不可见）&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;[Oracle] 目标字节长度 = <span class="subst">&#123;<span class="built_in">len</span>(TARGET_BYTES)&#125;</span> 字节（攻击者不可见）\n&quot;</span>)</span><br><span class="line"></span><br><span class="line">    result = byte_at_a_time_ecb_hard(encryption_oracle)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;\n&quot;</span> + <span class="string">&quot;=&quot;</span> * <span class="number">60</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[*] 还原的 target_bytes：&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;-&quot;</span> * <span class="number">40</span>)</span><br><span class="line">    <span class="built_in">print</span>(result.decode(<span class="string">&quot;utf-8&quot;</span>, errors=<span class="string">&quot;replace&quot;</span>))</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;-&quot;</span> * <span class="number">40</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 验证</span></span><br><span class="line">    success = result == TARGET_BYTES[: <span class="built_in">len</span>(result)]</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;\n[验证] 与真实 TARGET_BYTES 匹配：<span class="subst">&#123;<span class="string">&#x27;✓ 攻击成功&#x27;</span> <span class="keyword">if</span> success <span class="keyword">else</span> <span class="string">&#x27;✗ 攻击失败&#x27;</span>&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;=&quot;</span> * <span class="number">60</span>)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;\n实验2 完成。&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    main()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="运行截图-2"><a class="markdownIt-Anchor" href="#运行截图-2"></a> 运行截图</h3>
+<p><img src="/images/posts/shiyan2/2.png" alt="实验二截图" /></p>
+<hr />
+<h2 id="实验三cbc位翻转攻击-cryptopals-set-2-challenge-16"><a class="markdownIt-Anchor" href="#实验三cbc位翻转攻击-cryptopals-set-2-challenge-16"></a> 实验三：CBC位翻转攻击 —— Cryptopals Set 2 Challenge 16</h2>
+<h3 id="题目描述-3"><a class="markdownIt-Anchor" href="#题目描述-3"></a> 题目描述</h3>
+<p>加密Oracle将用户输入用AES-128-CBC加密，前后拼接固定字符串：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;comment1=cooking%20MCs;userdata=&quot; + input + &quot;;comment2=%20like%20a%20pound%20of%20bacon&quot;</span><br></pre></td></tr></table></figure>
+<p>输入中的 <code>;</code> 和 <code>=</code> 字符会被转义为 <code>%3B</code> 和 <code>%3D</code>，直接注入 <code>;admin=true;</code> 无效。</p>
+<p>解密Oracle检查解密结果中是否包含 <code>;admin=true;</code>，返回 <code>true/false</code>。</p>
+<p>目标：在不知道密钥的情况下，通过修改密文字节，使解密后包含管理员权限标记。</p>
+<blockquote>
+<p><strong>“Why does CBC mode have this property?”</strong></p>
+</blockquote>
+<h3 id="背景与原理-3"><a class="markdownIt-Anchor" href="#背景与原理-3"></a> 背景与原理</h3>
+<p>CBC解密公式：</p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>P</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>=</mo><mtext>AES_Dec</mtext><mo stretchy="false">(</mo><mi>K</mi><mo separator="true">,</mo><mi>C</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">)</mo><mo>⊕</mo><mi>C</mi><mo stretchy="false">[</mo><mi>i</mi><mo>−</mo><mn>1</mn><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">P[i] = \text{AES\_Dec}(K, C[i]) \oplus C[i-1]
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">AES_Dec</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mclose">])</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⊕</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span></span></p>
+<p><strong>位翻转原理</strong>：若修改 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo stretchy="false">[</mo><mi>i</mi><mo>−</mo><mn>1</mn><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">C[i-1]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span> 的第 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi></mrow><annotation encoding="application/x-tex">j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.854em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span></span></span></span> 字节：</p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>C</mi><mo stretchy="false">[</mo><mi>i</mi><mo>−</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>←</mo><mi>C</mi><mo stretchy="false">[</mo><mi>i</mi><mo>−</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>⊕</mo><mi mathvariant="normal">Δ</mi></mrow><annotation encoding="application/x-tex">C[i-1][j] \leftarrow C[i-1][j] \oplus \Delta
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">]</span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">←</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">]</span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⊕</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">Δ</span></span></span></span></span></p>
+<p>则 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">P[i][j]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mclose">]</span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span><span class="mclose">]</span></span></span></span> 也会翻转同样的比特：</p>
+<p class="katex-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>P</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>=</mo><mi>P</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>⊕</mo><mi mathvariant="normal">Δ</mi></mrow><annotation encoding="application/x-tex">P&#x27;[i][j] = P[i][j] \oplus \Delta
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0519em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8019em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mclose">]</span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mclose">]</span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⊕</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">Δ</span></span></span></span></span></p>
+<p>代价是 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false">[</mo><mi>i</mi><mo>−</mo><mn>1</mn><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">P[i-1]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span> 块完全被破坏（无法正确解密）。</p>
+<p><strong>为什么CBC有此特性？</strong> 因为CBC解密时第 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> 块的输出 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext>AES_Dec</mtext><mo stretchy="false">(</mo><mi>C</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\text{AES\_Dec}(C[i])</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">AES_Dec</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mclose">])</span></span></span></span> 是固定的，与 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo stretchy="false">[</mo><mi>i</mi><mo>−</mo><mn>1</mn><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">C[i-1]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span> 的XOR操作是<strong>线性</strong>的——对 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo stretchy="false">[</mo><mi>i</mi><mo>−</mo><mn>1</mn><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">C[i-1]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span> 做的改动会直接反映在 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">P[i]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mclose">]</span></span></span></span> 上。</p>
+<h3 id="实现步骤-3"><a class="markdownIt-Anchor" href="#实现步骤-3"></a> 实现步骤</h3>
+<p><strong>Step 1</strong>：构造加密/解密Oracle，输入中 <code>;</code> 替换为 <code>:</code> 或百分号编码，<code>=</code> 同理。</p>
+<p><strong>Step 2</strong>：分析块边界：</p>
+<ul>
+<li>前缀 <code>&quot;comment1=cooking%20MCs;userdata=&quot;</code> 长度 = 32字节 = 2个AES块</li>
+<li>用户输入从第3块（索引2，字节偏移32）开始</li>
+</ul>
+<p><strong>Step 3</strong>：构造输入 <code>&quot;A&quot;*16 + &quot;XadminXtrueXaaaa&quot;</code> 使其占据第2块和第3块。X为占位符，加密后获得密文。</p>
+<p><strong>Step 4</strong>：计算需要翻转的比特，修改第2块密文（索引2，字节偏移32~47）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 块2密文偏移 = 2 * 16 = 32</span></span><br><span class="line"><span class="comment"># 修改 C[2] 中对应位置的字节，翻转 P[3] 的对应字符</span></span><br><span class="line"><span class="comment"># block3[0]=&#x27;X&#x27;(0x58) → &#x27;;&#x27;(0x3B): XOR mask = 0x63</span></span><br><span class="line"><span class="comment"># block3[6]=&#x27;X&#x27;(0x58) → &#x27;=&#x27;(0x3D): XOR mask = 0x65</span></span><br><span class="line"><span class="comment"># block3[11]=&#x27;X&#x27;(0x58) → &#x27;;&#x27;(0x3B): XOR mask = 0x63</span></span><br><span class="line">flip_map = &#123;<span class="number">0</span>: (<span class="built_in">ord</span>(<span class="string">&#x27;X&#x27;</span>), <span class="built_in">ord</span>(<span class="string">&#x27;;&#x27;</span>)), <span class="number">6</span>: (<span class="built_in">ord</span>(<span class="string">&#x27;X&#x27;</span>), <span class="built_in">ord</span>(<span class="string">&#x27;=&#x27;</span>)), <span class="number">11</span>: (<span class="built_in">ord</span>(<span class="string">&#x27;X&#x27;</span>), <span class="built_in">ord</span>(<span class="string">&#x27;;&#x27;</span>))&#125;</span><br><span class="line"><span class="keyword">for</span> pos, (orig, target) <span class="keyword">in</span> flip_map.items():</span><br><span class="line">    ct[<span class="number">32</span> + pos] ^= (orig ^ target)</span><br></pre></td></tr></table></figure>
+<p><strong>Step 5</strong>：将修改后的密文送入解密Oracle，验证返回 <code>True</code>。</p>
+<h3 id="完整代码-3"><a class="markdownIt-Anchor" href="#完整代码-3"></a> 完整代码</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">实验2：逐字节ECB解密（困难版）— Cryptopals Challenge 14</span></span><br><span class="line"><span class="string">来源：Challenge 14 Set 2 - The Cryptopals Crypto Challenges</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">加密 Oracle:</span></span><br><span class="line"><span class="string">    AES-128-ECB(random_prefix || attacker_input || target_bytes, fixed_random_key)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">与 Challenge 12 的区别：加入了随机长度前缀（1-100字节），前缀长度和内容均未知。</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">攻击策略（STIMULUS-RESPONSE）：</span></span><br><span class="line"><span class="string">  1. 发送一大块相同字节（如 &quot;A&quot;*48），观察密文中的重复块位置</span></span><br><span class="line"><span class="string">     → 找到第一个由攻击者控制的整块起始位置</span></span><br><span class="line"><span class="string">  2. 确定前缀对齐所需填充长度 pad_len</span></span><br><span class="line"><span class="string">  3. 用逐字节替换攻击还原 target_bytes（与 Challenge 12 相同）</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">核心思路：</span></span><br><span class="line"><span class="string">  ECB 的确定性意味着&quot;相同明文块 → 相同密文块&quot;。</span></span><br><span class="line"><span class="string">  前缀虽然随机，但一旦我们通过填充将前缀对齐到块边界，</span></span><br><span class="line"><span class="string">  后续攻击就和 Challenge 12 完全一样了。</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"><span class="keyword">from</span> Crypto.Cipher <span class="keyword">import</span> AES</span><br><span class="line"></span><br><span class="line">BLOCK_SIZE = <span class="number">16</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="comment"># PKCS#7 填充 / 去填充</span></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">pkcs7_pad</span>(<span class="params">data: <span class="built_in">bytes</span>, block_size: <span class="built_in">int</span> = BLOCK_SIZE</span>) -&gt; <span class="built_in">bytes</span>:</span><br><span class="line">    pad_len = block_size - (<span class="built_in">len</span>(data) % block_size)</span><br><span class="line">    <span class="keyword">return</span> data + <span class="built_in">bytes</span>([pad_len] * pad_len)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">pkcs7_unpad</span>(<span class="params">data: <span class="built_in">bytes</span></span>) -&gt; <span class="built_in">bytes</span>:</span><br><span class="line">    pad_len = data[-<span class="number">1</span>]</span><br><span class="line">    <span class="keyword">if</span> pad_len &lt; <span class="number">1</span> <span class="keyword">or</span> pad_len &gt; BLOCK_SIZE:</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">&quot;Invalid padding&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> data[-pad_len:] != <span class="built_in">bytes</span>([pad_len] * pad_len):</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">&quot;Invalid padding bytes&quot;</span>)</span><br><span class="line">    <span class="keyword">return</span> data[:-pad_len]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="comment"># 固定随机 Key 和随机前缀（模拟服务端状态）</span></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line">_KEY = os.urandom(<span class="number">16</span>)</span><br><span class="line">_RANDOM_PREFIX = os.urandom(os.urandom(<span class="number">1</span>)[<span class="number">0</span>] % <span class="number">32</span> + <span class="number">5</span>)  <span class="comment"># 5~36 字节随机前缀</span></span><br><span class="line"></span><br><span class="line">TARGET_B64 = (</span><br><span class="line">    <span class="string">&quot;Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg&quot;</span></span><br><span class="line">    <span class="string">&quot;aGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBq&quot;</span></span><br><span class="line">    <span class="string">&quot;dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3AgTm8gSSBqdXN0IGRyb3ZlIGJ5&quot;</span></span><br><span class="line">)</span><br><span class="line">TARGET_BYTES = base64.b64decode(TARGET_B64)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">encryption_oracle</span>(<span class="params">attacker_input: <span class="built_in">bytes</span></span>) -&gt; <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;模拟受害者加密 Oracle&quot;&quot;&quot;</span></span><br><span class="line">    plaintext = pkcs7_pad(_RANDOM_PREFIX + attacker_input + TARGET_BYTES)</span><br><span class="line">    cipher = AES.new(_KEY, AES.MODE_ECB)</span><br><span class="line">    <span class="keyword">return</span> cipher.encrypt(plaintext)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="comment"># 工具函数</span></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">split_blocks</span>(<span class="params">data: <span class="built_in">bytes</span>, bs: <span class="built_in">int</span> = BLOCK_SIZE</span>):</span><br><span class="line">    <span class="keyword">return</span> [data[i : i + bs] <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, <span class="built_in">len</span>(data), bs)]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">detect_block_size</span>(<span class="params">oracle</span>) -&gt; <span class="built_in">int</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;通过观察密文长度增长来确定块大小&quot;&quot;&quot;</span></span><br><span class="line">    initial = <span class="built_in">len</span>(oracle(<span class="string">b&quot;&quot;</span>))</span><br><span class="line">    <span class="keyword">for</span> n <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, <span class="number">64</span>):</span><br><span class="line">        new_len = <span class="built_in">len</span>(oracle(<span class="string">b&quot;A&quot;</span> * n))</span><br><span class="line">        <span class="keyword">if</span> new_len &gt; initial:</span><br><span class="line">            <span class="keyword">return</span> new_len - initial</span><br><span class="line">    <span class="keyword">return</span> BLOCK_SIZE</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">detect_prefix_info</span>(<span class="params">oracle, bs: <span class="built_in">int</span></span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    返回 (prefix_blocks, pad_len)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    prefix_blocks : 前缀完整占用的块数</span></span><br><span class="line"><span class="string">    pad_len       : 需要补充多少字节才能使前缀对齐到块边界</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    方法：发送 3*bs 个相同字节，在密文中寻找连续两个相同块，</span></span><br><span class="line"><span class="string">          其起始位置即对齐后攻击者控制的第一块。</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 发送大块相同字节，寻找重复块</span></span><br><span class="line">    probe = <span class="string">b&quot;A&quot;</span> * (<span class="number">3</span> * bs)</span><br><span class="line">    ct = oracle(probe)</span><br><span class="line">    blocks = split_blocks(ct, bs)</span><br><span class="line"></span><br><span class="line">    prefix_blocks = <span class="literal">None</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(blocks) - <span class="number">1</span>):</span><br><span class="line">        <span class="keyword">if</span> blocks[i] == blocks[i + <span class="number">1</span>]:</span><br><span class="line">            prefix_blocks = i</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> prefix_blocks <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="keyword">raise</span> RuntimeError(<span class="string">&quot;无法找到重复块，前缀可能过长&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 通过二分找最小对齐填充长度</span></span><br><span class="line">    <span class="keyword">for</span> pad_len <span class="keyword">in</span> <span class="built_in">range</span>(bs):</span><br><span class="line">        ct2 = oracle(<span class="string">b&quot;A&quot;</span> * (pad_len + <span class="number">2</span> * bs))</span><br><span class="line">        blks = split_blocks(ct2, bs)</span><br><span class="line">        <span class="keyword">if</span> blks[prefix_blocks] == blks[prefix_blocks + <span class="number">1</span>]:</span><br><span class="line">            <span class="keyword">return</span> prefix_blocks, pad_len</span><br><span class="line"></span><br><span class="line">    <span class="keyword">raise</span> RuntimeError(<span class="string">&quot;无法确定对齐填充长度&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="comment"># 逐字节 ECB 解密攻击</span></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">byte_at_a_time_ecb_hard</span>(<span class="params">oracle</span>) -&gt; <span class="built_in">bytes</span>:</span><br><span class="line">    bs = detect_block_size(oracle)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;[Step 1] 检测到块大小 = <span class="subst">&#123;bs&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    prefix_blocks, pad_len = detect_prefix_info(oracle, bs)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;[Step 2] 前缀占 <span class="subst">&#123;prefix_blocks&#125;</span> 个完整块，对齐需填充 <span class="subst">&#123;pad_len&#125;</span> 字节&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 构造对齐后的 oracle：去掉前缀块，只返回攻击者控制部分</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">aligned_oracle</span>(<span class="params">data: <span class="built_in">bytes</span></span>) -&gt; <span class="built_in">bytes</span>:</span><br><span class="line">        ct = oracle(<span class="string">b&quot;A&quot;</span> * pad_len + data)</span><br><span class="line">        <span class="keyword">return</span> ct[prefix_blocks * bs :]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 探测目标长度（对齐后）</span></span><br><span class="line">    base_len = <span class="built_in">len</span>(aligned_oracle(<span class="string">b&quot;&quot;</span>))</span><br><span class="line">    <span class="keyword">for</span> n <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, bs + <span class="number">1</span>):</span><br><span class="line">        new_len = <span class="built_in">len</span>(aligned_oracle(<span class="string">b&quot;A&quot;</span> * n))</span><br><span class="line">        <span class="keyword">if</span> new_len &gt; base_len:</span><br><span class="line">            target_len = base_len - n</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        target_len = base_len</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;[Step 3] target_bytes 长度 = <span class="subst">&#123;target_len&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    recovered = <span class="built_in">bytearray</span>()</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;[Step 4] 逐字节字典攻击...&quot;</span>)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(target_len):</span><br><span class="line">        block_idx = i // bs       <span class="comment"># 目标字节所在块编号</span></span><br><span class="line">        byte_pos = i % bs          <span class="comment"># 在该块内的位置</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 构造&quot;已知前缀&quot;：让目标字节落在某个块的最后一个字节</span></span><br><span class="line">        prefix_input = <span class="string">b&quot;A&quot;</span> * (bs - <span class="number">1</span> - byte_pos)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 获取参考密文块</span></span><br><span class="line">        reference_ct = aligned_oracle(prefix_input)</span><br><span class="line">        target_block = reference_ct[block_idx * bs : (block_idx + <span class="number">1</span>) * bs]</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 暴力枚举该字节</span></span><br><span class="line">        found = <span class="literal">False</span></span><br><span class="line">        <span class="keyword">for</span> byte_val <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">256</span>):</span><br><span class="line">            dict_input = prefix_input + <span class="built_in">bytes</span>(recovered) + <span class="built_in">bytes</span>([byte_val])</span><br><span class="line">            dict_ct = aligned_oracle(dict_input)</span><br><span class="line">            dict_block = dict_ct[block_idx * bs : (block_idx + <span class="number">1</span>) * bs]</span><br><span class="line">            <span class="keyword">if</span> dict_block == target_block:</span><br><span class="line">                recovered.append(byte_val)</span><br><span class="line">                found = <span class="literal">True</span></span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> found:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;  [!] 字节 <span class="subst">&#123;i&#125;</span> 枚举失败（可能是填充字节），停止&quot;</span>)</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (i + <span class="number">1</span>) % <span class="number">16</span> == <span class="number">0</span> <span class="keyword">or</span> i == target_len - <span class="number">1</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;  [*] 已还原 <span class="subst">&#123;i + <span class="number">1</span>&#125;</span>/<span class="subst">&#123;target_len&#125;</span> 字节...&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">bytes</span>(recovered)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="comment"># Main</span></span><br><span class="line"><span class="comment"># ============================================================</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;=&quot;</span> * <span class="number">60</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;实验2：逐字节ECB解密（困难版）— Cryptopals Challenge 14&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;=&quot;</span> * <span class="number">60</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;\n[Oracle] 随机前缀长度 = <span class="subst">&#123;<span class="built_in">len</span>(_RANDOM_PREFIX)&#125;</span> 字节（攻击者不可见）&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;[Oracle] 目标字节长度 = <span class="subst">&#123;<span class="built_in">len</span>(TARGET_BYTES)&#125;</span> 字节（攻击者不可见）\n&quot;</span>)</span><br><span class="line"></span><br><span class="line">    result = byte_at_a_time_ecb_hard(encryption_oracle)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;\n&quot;</span> + <span class="string">&quot;=&quot;</span> * <span class="number">60</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[*] 还原的 target_bytes：&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;-&quot;</span> * <span class="number">40</span>)</span><br><span class="line">    <span class="built_in">print</span>(result.decode(<span class="string">&quot;utf-8&quot;</span>, errors=<span class="string">&quot;replace&quot;</span>))</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;-&quot;</span> * <span class="number">40</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 验证</span></span><br><span class="line">    success = result == TARGET_BYTES[: <span class="built_in">len</span>(result)]</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;\n[验证] 与真实 TARGET_BYTES 匹配：<span class="subst">&#123;<span class="string">&#x27;✓ 攻击成功&#x27;</span> <span class="keyword">if</span> success <span class="keyword">else</span> <span class="string">&#x27;✗ 攻击失败&#x27;</span>&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;=&quot;</span> * <span class="number">60</span>)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;\n实验2 完成。&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    main()</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="运行截图-3"><a class="markdownIt-Anchor" href="#运行截图-3"></a> 运行截图</h3>
+<p><img src="/images/posts/shiyan2/3.png" alt="实验三截图" /></p>
+<hr />
+<h2 id="总结与心得"><a class="markdownIt-Anchor" href="#总结与心得"></a> 总结与心得</h2>
+<h3 id="实验一心得"><a class="markdownIt-Anchor" href="#实验一心得"></a> 实验一心得</h3>
+<p>通过本实验深刻理解了ICAO 9303标准对ePassport安全性的影响。BAC协议的设计目的是防止非接触式读取，但其密钥完全由MRZ派生，而MRZ中的信息（生日、有效期、文件号）往往并非完全随机，攻击者若能获得MRZ字段（例如肉眼观察或照片扫描），即可独立算出 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>K</mi><mrow><mi>E</mi><mi>N</mi><mi>C</mi></mrow></msub></mrow><annotation encoding="application/x-tex">K_{ENC}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">K</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">ENC</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>。</p>
+<p>本实验中&quot;?&quot;字符通过简单的校验位枚举即可恢复，提醒我们：<strong>密钥强度不仅依赖算法，还取决于密钥材料的熵值</strong>。</p>
+<p>遇到的问题：密钥衍生步骤中 K_seed 应使用 hexdigest 前32字符而非 bytes 前16字节；DES 奇偶校验位调整是关键步骤，缺少该步骤会导致解密结果乱码。</p>
+<h3 id="实验二心得"><a class="markdownIt-Anchor" href="#实验二心得"></a> 实验二心得</h3>
+<p>Challenge 14相比Challenge 12的核心难点在于：随机前缀破坏了块对齐假设。通过&quot;STIMULUS-RESPONSE&quot;思维——向Oracle发送特定刺激，观察响应变化——可以系统性地探测前缀长度。这种方法不依赖任何密码学弱点，而是利用了ECB的确定性：<strong>相同明文块 → 相同密文块</strong>。</p>
+<p>实验让我意识到，ECB模式的无状态性既是弱点，也可被攻击者&quot;感知&quot;利用。</p>
+<p>遇到的问题：探测前缀长度时，边界情况（前缀恰好对齐16字节时）需要特别处理，否则会多计入一块。</p>
+<h3 id="实验三心得"><a class="markdownIt-Anchor" href="#实验三心得"></a> 实验三心得</h3>
+<p>CBC位翻转攻击直观展示了为什么<strong>加密不等于认证（MAC）</strong>。即使攻击者不知道密钥，也可以精确篡改明文内容，只要能修改密文。</p>
+<p>这正是现代协议（如TLS 1.3）要求同时提供加密+认证（AEAD，如AES-GCM）的根本原因。</p>
+<p>实验中需要精确计算字节偏移，前缀 <code>&quot;comment1=cooking%20MCs;userdata=&quot;</code> 长度恰好为32字节（两块），所以用户输入从第三块开始，修改第二块密文即可翻转第三块明文。</p>
+<h3 id="整体感悟"><a class="markdownIt-Anchor" href="#整体感悟"></a> 整体感悟</h3>
+<p>三个实验从不同角度揭示了「分组密码 ≠ 安全系统」的核心原则：</p>
+<table>
+<thead>
+<tr>
+<th>实验</th>
+<th>核心弱点</th>
+<th>教训</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BAC ePassport</td>
+<td>密钥熵值不足</td>
+<td>密钥材料必须高熵</td>
+</tr>
+<tr>
+<td>ECB逐字节（Harder）</td>
+<td>ECB确定性+工作模式</td>
+<td>不要用ECB；前缀不能提供安全</td>
+</tr>
+<tr>
+<td>CBC位翻转</td>
+<td>加密不提供完整性</td>
+<td>加密必须配合MAC/AEAD</td>
+</tr>
+</tbody>
+</table>
+<p>密码学实验的价值不仅在于&quot;破解&quot;，更在于培养对密码系统<strong>整体安全性</strong>的系统化思维：算法选择、密钥管理、完整性保护，缺一不可。</p>
+<hr />
+<h2 id="参考文献"><a class="markdownIt-Anchor" href="#参考文献"></a> 参考文献</h2>
+<ol>
+<li>
+<p>ICAO. <em>Machine Readable Travel Documents, Doc 9303, Part 1, Volume 1</em>. ICAO, 2008.<br />
+<a target="_blank" rel="noopener" href="https://www.icao.int/publications/Documents/9303_p1_v1_cons_en.pdf">https://www.icao.int/publications/Documents/9303_p1_v1_cons_en.pdf</a></p>
+</li>
+<li>
+<p>ICAO. <em>Machine Readable Travel Documents, Doc 9303, Part 1, Volume 2</em>. ICAO, 2008.<br />
+<a target="_blank" rel="noopener" href="https://www.icao.int/publications/Documents/9303_p1_v2_cons_en.pdf">https://www.icao.int/publications/Documents/9303_p1_v2_cons_en.pdf</a></p>
+</li>
+<li>
+<p>Matasano Security (NCC Group). <em>The Cryptopals Crypto Challenges, Set 2</em>.<br />
+<a target="_blank" rel="noopener" href="https://www.cryptopals.com/sets/2">https://www.cryptopals.com/sets/2</a></p>
+</li>
+<li>
+<p>Hick, S. <em>AES KEY Encoded in the Machine Readable Zone of a European ePassport</em>. CrypTool Project, December 2011.</p>
+</li>
+<li>
+<p>Daemen, J., Rijmen, V. <em>The Design of Rijndael: AES - The Advanced Encryption Standard</em>. Springer, 2002.</p>
+</li>
+<li>
+<p>Bellare, M., Namprempre, C. Authenticated Encryption: Relations among Notions and Analysis of the Generic Composition Paradigm. <em>Journal of Cryptology</em>, 21(4), 2008.</p>
+</li>
+</ol>
+<hr />
+<p><em>本文为现代密码学课程实验报告，仅供学习交流使用。</em></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+      
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+  <nav id="article-nav" aria-label="Article navigation" data-aos="fade-up">
+    
+    
+    
+    <div class="article-nav-link-wrap right">
+      
+        
+        
+          <img data-src="/images/banner.webp" data-sizes="auto" alt="现代密码学实验一" class="lazyload">
+        
+      
+      <a href="/2026/05/13/%E7%8E%B0%E4%BB%A3%E5%AF%86%E7%A0%81%E5%AD%A6%E5%AE%9E%E9%AA%8C%E4%B8%80/" aria-label="后一篇: 现代密码学实验一"  title="后一篇: 现代密码学实验一"></a>
+      <div class="article-nav-caption">后一篇</div>
+      <h3 class="article-nav-title">
+        
+          现代密码学实验一
+        
+      </h3>
+    </div>
+    
+  </nav>
+
+
+</article>
+
+
+
+
+
+
+
+
+
+
+</section>
+        </div>
+        <footer id="footer" aria-label="Site footer">
+  <div style="width: 100%; overflow: hidden">
+    <div class="footer-line"></div>
+  </div>
+  <div id="footer-info">
+    
+    <div>
+      <span class="icon-copyright"></span>
+      
+      
+      
+        2020-2026
+      
+      <span class="footer-info-sep rotate"></span>
+      fta-01
+    </div>
+    
+      <div>
+        基于&nbsp;<a href="https://hexo.io/" rel="noopener nofollow noreferrer" target="_blank">Hexo</a>&nbsp;
+        Theme.<a href="https://github.com/D-Sketon/hexo-theme-reimu" rel="noopener nofollow noreferrer" target="_blank">Reimu</a>
+      </div>
+    
+    
+      <div>
+        <span class="icon-brush"></span>
+        35.2k
+        &nbsp;|&nbsp;
+        <span class="icon-coffee"></span>
+        03:23
+      </div>
+    
+    
+    
+    
+    
+      <div>
+        <span class="icon-eye"></span>
+        <span id="busuanzi_container_site_pv">总访问量&nbsp;<span id="busuanzi_value_site_pv"></span></span>
+        &nbsp;|&nbsp;
+        <span class="icon-user"></span>
+        <span id="busuanzi_container_site_uv">总访客量&nbsp;<span id="busuanzi_value_site_uv"></span></span>
+      </div>
+    
+  </div>
+</footer>
+
+        
+          <div class="sidebar-top">
+            <div class="sidebar-top-taichi rotate"></div>
+            <div class="arrow-up"></div>
+          </div>
+        
+        <div id="mask" class="hide"></div>
+      </div>
+      <nav id="mobile-nav" aria-label="Mobile navigation">
+  <div class="sidebar-wrap">
+    
+      
+        <div class="sidebar-toc-sidebar"><h3 class="toc-title">文章目录</h3>
+<div class="sidebar-toc-wrapper toc-div-class" >
+  
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%8E%B0%E4%BB%A3%E5%AF%86%E7%A0%81%E5%AD%A6%E5%AE%9E%E9%AA%8C2aes%E5%AF%86%E9%92%A5%E6%8E%A8%E5%AF%BC-ecb%E9%80%90%E5%AD%97%E8%8A%82%E8%A7%A3%E5%AF%86%E4%B8%8Ecbc%E4%BD%8D%E7%BF%BB%E8%BD%AC%E6%94%BB%E5%87%BB"><span class="toc-number">1.</span> <span class="toc-text"> 现代密码学实验2：AES密钥推导、ECB逐字节解密与CBC位翻转攻击</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%91%98%E8%A6%81"><span class="toc-number">1.1.</span> <span class="toc-text"> 摘要</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E4%B8%80aes%E5%AF%86%E9%92%A5%E7%BC%96%E7%A0%81%E4%BA%8E%E6%AC%A7%E6%B4%B2%E7%94%B5%E5%AD%90%E6%8A%A4%E7%85%A7%E6%9C%BA%E5%99%A8%E5%8F%AF%E8%AF%BB%E5%8C%BAbac%E5%8D%8F%E8%AE%AE"><span class="toc-number">1.2.</span> <span class="toc-text"> 实验一：AES密钥编码于欧洲电子护照机器可读区（BAC协议）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE%E6%8F%8F%E8%BF%B0"><span class="toc-number">1.2.1.</span> <span class="toc-text"> 题目描述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8E%9F%E7%90%86"><span class="toc-number">1.2.2.</span> <span class="toc-text"> 背景与原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%AD%A5%E9%AA%A4"><span class="toc-number">1.2.3.</span> <span class="toc-text"> 实现步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81"><span class="toc-number">1.2.4.</span> <span class="toc-text"> 完整代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E6%88%AA%E5%9B%BE"><span class="toc-number">1.2.5.</span> <span class="toc-text"> 运行截图</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E4%BA%8C%E9%80%90%E5%AD%97%E8%8A%82ecb%E8%A7%A3%E5%AF%86%E5%9B%B0%E9%9A%BE%E7%89%88-cryptopals-set-2-challenge-14"><span class="toc-number">1.3.</span> <span class="toc-text"> 实验二：逐字节ECB解密（困难版）—— Cryptopals Set 2 Challenge 14</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE%E6%8F%8F%E8%BF%B0-2"><span class="toc-number">1.3.1.</span> <span class="toc-text"> 题目描述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8E%9F%E7%90%86-2"><span class="toc-number">1.3.2.</span> <span class="toc-text"> 背景与原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%AD%A5%E9%AA%A4-2"><span class="toc-number">1.3.3.</span> <span class="toc-text"> 实现步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81-2"><span class="toc-number">1.3.4.</span> <span class="toc-text"> 完整代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E6%88%AA%E5%9B%BE-2"><span class="toc-number">1.3.5.</span> <span class="toc-text"> 运行截图</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E4%B8%89cbc%E4%BD%8D%E7%BF%BB%E8%BD%AC%E6%94%BB%E5%87%BB-cryptopals-set-2-challenge-16"><span class="toc-number">1.4.</span> <span class="toc-text"> 实验三：CBC位翻转攻击 —— Cryptopals Set 2 Challenge 16</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE%E6%8F%8F%E8%BF%B0-3"><span class="toc-number">1.4.1.</span> <span class="toc-text"> 题目描述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%E4%B8%8E%E5%8E%9F%E7%90%86-3"><span class="toc-number">1.4.2.</span> <span class="toc-text"> 背景与原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%AD%A5%E9%AA%A4-3"><span class="toc-number">1.4.3.</span> <span class="toc-text"> 实现步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81-3"><span class="toc-number">1.4.4.</span> <span class="toc-text"> 完整代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E6%88%AA%E5%9B%BE-3"><span class="toc-number">1.4.5.</span> <span class="toc-text"> 运行截图</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93%E4%B8%8E%E5%BF%83%E5%BE%97"><span class="toc-number">1.5.</span> <span class="toc-text"> 总结与心得</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E4%B8%80%E5%BF%83%E5%BE%97"><span class="toc-number">1.5.1.</span> <span class="toc-text"> 实验一心得</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E4%BA%8C%E5%BF%83%E5%BE%97"><span class="toc-number">1.5.2.</span> <span class="toc-text"> 实验二心得</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E4%B8%89%E5%BF%83%E5%BE%97"><span class="toc-number">1.5.3.</span> <span class="toc-text"> 实验三心得</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B4%E4%BD%93%E6%84%9F%E6%82%9F"><span class="toc-number">1.5.4.</span> <span class="toc-text"> 整体感悟</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">1.6.</span> <span class="toc-text"> 参考文献</span></a></li></ol></li></ol>
+  
+</div>
+</div>
+        <div class="sidebar-common-sidebar hidden"><div class="sidebar-author">
+  <img data-src="/avatar/avatar.webp" data-sizes="auto" alt="fta-01" class="lazyload">
+  <div class="sidebar-author-name">fta-01</div>
+  <div class="sidebar-description"></div>
+</div>
+<div class="sidebar-state">
+  <div class="sidebar-state-article">
+    <div>文章</div>
+    <div class="sidebar-state-number">4</div>
+  </div>
+  <div class="sidebar-state-category">
+    <div>分类</div>
+    <div class="sidebar-state-number">0</div>
+  </div>
+  <div class="sidebar-state-tag">
+    <div>标签</div>
+    <div class="sidebar-state-number">3</div>
+  </div>
+</div>
+<div class="sidebar-social">
+  
+</div>
+<div class="sidebar-menu">
+  
+    
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/" aria-label="首页"></a>
+        <div class="sidebar-menu-icon icon rotate">
+          
+            &#xe62b;
+          
+        </div>
+        <div class="sidebar-menu-link">首页</div>
+      </div>
+    
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/archives" aria-label="归档"></a>
+        <div class="sidebar-menu-icon icon rotate">
+          
+            &#xe62b;
+          
+        </div>
+        <div class="sidebar-menu-link">归档</div>
+      </div>
+    
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/about" aria-label="关于"></a>
+        <div class="sidebar-menu-icon icon rotate">
+          
+            &#xe62b;
+          
+        </div>
+        <div class="sidebar-menu-link">关于</div>
+      </div>
+    
+      <div class="sidebar-menu-link-wrap">
+        <a class="sidebar-menu-link-dummy" href="/friend" aria-label="盆友"></a>
+        <div class="sidebar-menu-icon icon rotate">
+          
+            &#xe62b;
+          
+        </div>
+        <div class="sidebar-menu-link">盆友</div>
+      </div>
+    
+  
+</div>
+</div>
+      
+    
+  </div>
+  
+    
+      <div class="sidebar-btn-wrapper">
+        <div class="sidebar-toc-btn current"></div>
+        <div class="sidebar-common-btn"></div>
+      </div>
+    
+  
+</nav>
+
+    </div>
+    
+    
+    
+    
+<script src="https://npm.webcache.cn/lazysizes@5.3.2/lazysizes.min.js" integrity="sha384-3gT&#x2F;vsepWkfz&#x2F;ff7PpWNUeMzeWoH3cDhm&#x2F;A8jM7ouoAK0&#x2F;fP&#x2F;9bcHHR5kHq2nf+e" crossorigin="anonymous"></script>
+
+
+<script src="https://npm.webcache.cn/clipboard@2.0.11/dist/clipboard.min.js" integrity="sha384-J08i8An&#x2F;QeARD9ExYpvphB8BsyOj3Gh2TSh1aLINKO3L0cMSH2dN3E22zFoXEi0Q" crossorigin="anonymous"></script>
+
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+  
+<script src="/js/aos.js"></script>
+
+  <script>
+    var aosInit = () => {
+      AOS.init({
+        duration: 1000,
+        easing: "ease",
+        once: true,
+        offset: 50,
+      });
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', aosInit);
+    } else {
+      aosInit();
+    }
+  </script>
+
+
+
+<script src="/js/pjax_script.js" data-pjax></script>
+
+
+
+
+
+
+
+  
+<script src="https://npm.webcache.cn/mouse-firework@0.1.1/dist/index.umd.js" integrity="sha384-8LyaidD9GPxQQgLJO&#x2F;WRw&#x2F;O2h3BoNq&#x2F;ApI&#x2F;ecpvM6RsrCz2qP2ppBXUKihP4V&#x2F;2d" crossorigin="anonymous"></script>
+
+  <script>
+    window.firework && window.firework(JSON.parse('{"excludeElements":["a","button"],"particles":[{"shape":"circle","move":["emit"],"easing":"easeOutExpo","colors":["var(--red-1)","var(--red-2)","var(--red-3)","var(--red-4)"],"number":20,"duration":[1200,1800],"shapeOptions":{"radius":[16,32],"alpha":[0.3,0.5]}},{"shape":"circle","move":["diffuse"],"easing":"easeOutExpo","colors":["var(--red-0)"],"number":1,"duration":[1200,1800],"shapeOptions":{"radius":20,"alpha":[0.2,0.5],"lineWidth":6}}]}'))
+  </script>
+
+
+
+
+
+
+
+
+
+
+<div id="lazy-script">
+  <div>
+    
+      
+      
+      <script data-pjax>
+        window.REIMU_POST = {
+          author: "fta-01",
+          title: "现代密码学实验二",
+          url: "http://example.com/2026/06/01/%E7%8E%B0%E4%BB%A3%E5%AF%86%E7%A0%81%E5%AD%A6%E5%AE%9E%E9%AA%8C2/",
+          excerpt: "",
+          description: "",
+          stripContent: " 现代密码学实验2：AES密钥推导、ECB逐字节解密与CBC位翻转攻击 课程：现代密码学实验 实验编号：EX2 实验日期：2026 年 6 月 包含实验：BAC协议AES密钥推导 / 含前缀ECB逐字节解密（Harder）/ CBC位翻转攻击   摘要 本实验报告涵盖三个密码学实验，聚焦AES分组密码在不同工作模式及应用场景下的安全性分析。实验一基于欧洲电子护照（ePassport）的基本访问控制（BAC）协议，通过分析护照机器可读区（MRZ）的编码规则，推导出缺失的校验字符，进而依据ICAO ",
+          date: "Mon Jun 01 2026 21:40:36 GMT+0800",
+          updated: "Mon Jun 01 2026 21:40:05 GMT+0800",
+          cover: "/images/banner.webp",
+        };
+      </script>
+       
+    
+    
+      
+        
+<script src="/js/insert_highlight.js" data-pjax></script>
+
+        
+      
+    
+    
+      <script type="module" data-pjax>
+        const PhotoSwipeLightbox = (await safeImport("https://npm.webcache.cn/photoswipe@5.4.4/dist/photoswipe-lightbox.esm.min.js", "sha384-DiL6M/gG+wmTxmCRZyD1zee6lIhawn5TGvED0FOh7fXcN9B0aZ9dexSF/N6lrZi/")).default;
+        const initPswp = (gallery, children) => {
+          if (_$$(`${gallery} ${children}`).length > 0) {
+            new PhotoSwipeLightbox({
+              gallery,
+              children,
+              pswpModule: () => safeImport("https://npm.webcache.cn/photoswipe@5.4.4/dist/photoswipe.esm.min.js", "sha384-WkkO3GCmgkC3VQWpaV8DqhKJqpzpF9JoByxDmnV8+oTJ7m3DfYEWX1fu1scuS4+s")
+            }).init();
+          }
+        }
+        const pswp = () => {
+          initPswp('.article-entry', 'a.article-gallery-item');
+          initPswp('.article-gallery', 'a.article-gallery-item');
+          window.lightboxStatus = 'done';
+          window.removeEventListener('lightbox:ready', pswp);
+        }
+        if(window.lightboxStatus === 'ready') {
+          pswp()
+        } else {
+          window.addEventListener('lightbox:ready', pswp);
+        }
+      </script>
+      
+        
+
+
+
+
+
+
+
+
+      
+    
+  </div>
+</div>
+
+
+  <script>
+    console.log(String.raw`%c 
+ ______     ______     __     __    __     __  __    
+/\  == \   /\  ___\   /\ \   /\ "-./  \   /\ \/\ \   
+\ \  __<   \ \  __\   \ \ \  \ \ \-./\ \  \ \ \_\ \  
+ \ \_\ \_\  \ \_____\  \ \_\  \ \_\ \ \_\  \ \_____\ 
+  \/_/ /_/   \/_____/   \/_/   \/_/  \/_/   \/_____/ 
+                                                  
+`,'color: #ff5252;')
+    console.log('%c Theme.Reimu v' + '1.10.0' + ' %c https://github.com/D-Sketon/hexo-theme-reimu ', 'color: white; background: #ff5252; padding:5px 0;', 'padding:4px;border:1px solid #ff5252;')
+  </script>
+  
+
+
+
+  
+<script src="https://npm.webcache.cn/busuanzi@2.3.0/bsz.pure.mini.js" integrity="sha384-0M75wtSkhjIInv4coYlaJU83+OypaRCIq2SukQVQX04eGTCBXJDuWAbJet56id+S" crossorigin="anonymous" async></script>
+
+
+
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (let registration of registrations) {
+        registration.unregister();
+      }
+    });
+  }
+</script>
+
+
+
+
+
+
+
+
+
+    
+  </body>
+  </html>
+
